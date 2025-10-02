@@ -9,8 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Shield, Lock, Terminal, AlertTriangle, Sparkles, BookOpen } from "lucide-react"
 import Link from "next/link"
-import { fadeInUp, slideInLeft, staggerContainer } from "@/lib/animations"
+import { fadeInUp, staggerContainer, bounceIn, floatingAnimation } from "@/lib/animations"
 import { ParticleBackground } from "@/components/particle-background"
+import { AnimatedGradientBg } from "@/components/animated-gradient-bg"
+import { GlassCard } from "@/components/glass-card"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
@@ -49,14 +51,15 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
       <ParticleBackground />
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+      <AnimatedGradientBg />
+
       <motion.div
         className="absolute inset-0 opacity-30"
         animate={{
           background: [
-            "radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%)",
-            "radial-gradient(circle at 80% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%)",
-            "radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%)",
+            "radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%)",
+            "radial-gradient(circle at 80% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%)",
+            "radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%)",
           ],
         }}
         transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
@@ -64,7 +67,7 @@ export default function LoginPage() {
 
       {/* Header */}
       <motion.header
-        className="border-b border-border relative z-10 backdrop-blur-sm bg-background/80"
+        className="border-b border-border relative z-10 backdrop-blur-md bg-background/60"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -75,21 +78,31 @@ export default function LoginPage() {
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 400 }}
           >
-            <Shield className="w-6 h-6 text-primary" />
+            <motion.div {...floatingAnimation}>
+              <Shield className="w-6 h-6 text-primary" />
+            </motion.div>
             <span className="font-mono text-lg font-semibold">SecLab</span>
           </motion.div>
           <div className="flex items-center gap-2">
             <Link href="/help">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="outline" size="sm">
+              <motion.div
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <Button variant="outline" size="sm" className="backdrop-blur-sm bg-transparent">
                   <BookOpen className="w-4 h-4 mr-2" />
                   Documentation
                 </Button>
               </motion.div>
             </Link>
             <Link href="/admin">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="outline" size="sm">
+              <motion.div
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <Button variant="outline" size="sm" className="backdrop-blur-sm bg-transparent">
                   <Terminal className="w-4 h-4 mr-2" />
                   Admin Dashboard
                 </Button>
@@ -124,11 +137,23 @@ export default function LoginPage() {
               </motion.p>
             </motion.div>
 
-            <motion.div variants={slideInLeft}>
-              <Card className="bg-card/50 border-warning/20 backdrop-blur-sm hover:shadow-lg transition-shadow duration-300">
+            <GlassCard delay={0.2}>
+              <Card className="bg-transparent border-0 border-warning/20">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-warning">
-                    <AlertTriangle className="w-5 h-5" />
+                    <motion.div
+                      animate={{
+                        rotate: [0, -5, 5, -5, 0],
+                        scale: [1, 1.1, 1],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Number.POSITIVE_INFINITY,
+                        repeatDelay: 3,
+                      }}
+                    >
+                      <AlertTriangle className="w-5 h-5" />
+                    </motion.div>
                     Educational Purpose Only
                   </CardTitle>
                 </CardHeader>
@@ -144,10 +169,18 @@ export default function LoginPage() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 + index * 0.1 }}
+                      whileHover={{ x: 5, transition: { duration: 0.2 } }}
                     >
                       <motion.div
                         className="w-2 h-2 rounded-full bg-primary mt-2"
-                        animate={{ scale: [1, 1.2, 1] }}
+                        animate={{
+                          scale: [1, 1.3, 1],
+                          boxShadow: [
+                            "0 0 0px rgba(120, 119, 198, 0.5)",
+                            "0 0 10px rgba(120, 119, 198, 0.8)",
+                            "0 0 0px rgba(120, 119, 198, 0.5)",
+                          ],
+                        }}
                         transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: index * 0.3 }}
                       />
                       <div>
@@ -158,13 +191,18 @@ export default function LoginPage() {
                   ))}
                 </CardContent>
               </Card>
-            </motion.div>
+            </GlassCard>
 
-            <motion.div variants={slideInLeft} transition={{ delay: 0.2 }}>
-              <Card className="bg-card/50 backdrop-blur-sm hover:shadow-lg transition-shadow duration-300">
+            <GlassCard delay={0.4}>
+              <Card className="bg-transparent border-0">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
+                    <motion.div
+                      animate={{ rotate: [0, 360] }}
+                      transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                    >
+                      <Sparkles className="w-4 h-4 text-primary" />
+                    </motion.div>
                     Default Credentials
                   </CardTitle>
                 </CardHeader>
@@ -172,144 +210,170 @@ export default function LoginPage() {
                   {["admin / admin123", "user / password", "john / john2024"].map((cred, index) => (
                     <motion.p
                       key={index}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.5 + index * 0.1 }}
+                      whileHover={{
+                        x: 5,
+                        color: "var(--primary)",
+                        transition: { duration: 0.2 },
+                      }}
+                      className="cursor-default"
                     >
                       {cred}
                     </motion.p>
                   ))}
                 </CardContent>
               </Card>
-            </motion.div>
+            </GlassCard>
           </motion.div>
 
           {/* Right Side - Login Form */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            initial={{ opacity: 0, x: 20, rotateY: -10 }}
+            animate={{ opacity: 1, x: 0, rotateY: 0 }}
+            transition={{ duration: 0.7, delay: 0.2, type: "spring" }}
+            style={{ transformStyle: "preserve-3d" }}
           >
-            <Card className="border-border/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lock className="w-5 h-5" />
-                  Authentication
-                </CardTitle>
-                <CardDescription>Enter your credentials to access the system</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <motion.div
-                    className="space-y-2"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <label className="text-sm font-medium">Username</label>
-                    <Input
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Enter username"
-                      className="bg-secondary/50 transition-all duration-200 focus:scale-[1.02]"
-                      required
-                    />
-                  </motion.div>
-
-                  <motion.div
-                    className="space-y-2"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    <label className="text-sm font-medium">Password</label>
-                    <Input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter password"
-                      className="bg-secondary/50 transition-all duration-200 focus:scale-[1.02]"
-                      required
-                    />
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                  >
-                    <Button type="submit" className="w-full relative overflow-hidden group" disabled={loading}>
-                      <motion.span
-                        className="relative z-10"
-                        animate={loading ? { opacity: [1, 0.5, 1] } : {}}
-                        transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
-                      >
-                        {loading ? "Authenticating..." : "Sign In"}
-                      </motion.span>
-                      {!loading && (
-                        <motion.div
-                          className="absolute inset-0 bg-primary/20"
-                          initial={{ x: "-100%" }}
-                          whileHover={{ x: "100%" }}
-                          transition={{ duration: 0.5 }}
-                        />
-                      )}
-                    </Button>
-                  </motion.div>
-                </form>
-
-                {result && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Alert
-                      className={`mt-4 ${result.success ? "border-primary/50 bg-primary/10" : "border-destructive/50 bg-destructive/10"}`}
+            <GlassCard>
+              <Card className="border-0 bg-transparent shadow-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <motion.div
+                      animate={{
+                        rotate: [0, -10, 10, -10, 0],
+                      }}
+                      transition={{
+                        duration: 5,
+                        repeat: Number.POSITIVE_INFINITY,
+                      }}
                     >
-                      <AlertDescription className="space-y-2">
-                        <p className="font-medium">{result.message}</p>
-                        {result.user && (
-                          <motion.div
-                            className="text-sm font-mono bg-background/50 p-3 rounded"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.2 }}
-                          >
-                            <p>User ID: {result.user.id}</p>
-                            <p>Username: {result.user.username}</p>
-                            <p>Role: {result.user.role}</p>
-                          </motion.div>
-                        )}
-                        {result.vulnerability && (
-                          <motion.p
-                            className="text-warning font-medium"
-                            animate={{ opacity: [1, 0.7, 1] }}
-                            transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
-                          >
-                            ⚠️ {result.vulnerability}
-                          </motion.p>
-                        )}
-                        {result.error && (
-                          <div className="text-sm font-mono bg-background/50 p-3 rounded">
-                            <p className="text-destructive">{result.error}</p>
-                            {result.query && <p className="mt-2 text-muted-foreground">Query: {result.query}</p>}
-                          </div>
-                        )}
-                      </AlertDescription>
-                    </Alert>
-                  </motion.div>
-                )}
-              </CardContent>
-            </Card>
+                      <Lock className="w-5 h-5" />
+                    </motion.div>
+                    Authentication
+                  </CardTitle>
+                  <CardDescription>Enter your credentials to access the system</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <motion.div
+                      className="space-y-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <label className="text-sm font-medium">Username</label>
+                      <Input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Enter username"
+                        className="bg-secondary/50 backdrop-blur-sm transition-all duration-300 focus:scale-[1.02] focus:shadow-lg focus:shadow-primary/20"
+                        required
+                      />
+                    </motion.div>
+
+                    <motion.div
+                      className="space-y-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <label className="text-sm font-medium">Password</label>
+                      <Input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter password"
+                        className="bg-secondary/50 backdrop-blur-sm transition-all duration-300 focus:scale-[1.02] focus:shadow-lg focus:shadow-primary/20"
+                        required
+                      />
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 }}
+                    >
+                      <Button
+                        type="submit"
+                        className="w-full relative overflow-hidden group shadow-lg hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
+                        disabled={loading}
+                      >
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/30 to-primary/0"
+                          animate={
+                            loading
+                              ? {}
+                              : {
+                                  x: ["-200%", "200%"],
+                                }
+                          }
+                          transition={{
+                            duration: 2,
+                            repeat: Number.POSITIVE_INFINITY,
+                            ease: "linear",
+                          }}
+                        />
+                        <motion.span
+                          className="relative z-10"
+                          animate={loading ? { opacity: [1, 0.5, 1] } : {}}
+                          transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
+                        >
+                          {loading ? "Authenticating..." : "Sign In"}
+                        </motion.span>
+                      </Button>
+                    </motion.div>
+                  </form>
+
+                  {result && (
+                    <motion.div variants={bounceIn} initial="initial" animate="animate">
+                      <Alert
+                        className={`mt-4 backdrop-blur-sm ${result.success ? "border-primary/50 bg-primary/10" : "border-destructive/50 bg-destructive/10"}`}
+                      >
+                        <AlertDescription className="space-y-2">
+                          <p className="font-medium">{result.message}</p>
+                          {result.user && (
+                            <motion.div
+                              className="text-sm font-mono bg-background/50 p-3 rounded overflow-x-auto"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 0.2 }}
+                            >
+                              <p>User ID: {result.user.id}</p>
+                              <p>Username: {result.user.username}</p>
+                              <p>Role: {result.user.role}</p>
+                            </motion.div>
+                          )}
+                          {result.vulnerability && (
+                            <motion.p
+                              className="text-warning font-medium"
+                              animate={{ opacity: [1, 0.7, 1] }}
+                              transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
+                            >
+                              ⚠️ {result.vulnerability}
+                            </motion.p>
+                          )}
+                          {result.error && (
+                            <div className="text-sm font-mono bg-background/50 p-3 rounded">
+                              <p className="text-destructive">{result.error}</p>
+                              {result.query && <p className="mt-2 text-muted-foreground">Query: {result.query}</p>}
+                            </div>
+                          )}
+                        </AlertDescription>
+                      </Alert>
+                    </motion.div>
+                  )}
+                </CardContent>
+              </Card>
+            </GlassCard>
           </motion.div>
         </div>
       </main>
 
       {/* Footer */}
       <motion.footer
-        className="border-t border-border py-6 relative z-10 backdrop-blur-sm bg-background/80"
+        className="border-t border-border py-6 relative z-10 backdrop-blur-md bg-background/60"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.8 }}
