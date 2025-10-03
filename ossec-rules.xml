@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<group name="sqli-bruteforce,">
+
+  <!-- SQL Injection Detection -->
+  <rule id="100001" level="10">
+    <if_sid>1002</if_sid>
+    <regex>sql_injection</regex>
+    <description>SQL Injection attempt detected</description>
+    <group>sql_injection,</group>
+  </rule>
+
+  <!-- SQL Injection with UNION SELECT -->
+  <rule id="100002" level="12">
+    <if_sid>100001</if_sid>
+    <regex>UNION SELECT</regex>
+    <description>SQL Injection with UNION SELECT detected</description>
+    <group>sql_injection,high_severity,</group>
+  </rule>
+
+  <!-- SQL Injection with OR 1=1 -->
+  <rule id="100003" level="11">
+    <if_sid>100001</if_sid>
+    <regex>OR 1=1</regex>
+    <description>SQL Injection with OR 1=1 detected</description>
+    <group>sql_injection,medium_severity,</group>
+  </rule>
+
+  <!-- SQL Injection with Comment-based Bypass -->
+  <rule id="100004" level="10">
+    <if_sid>100001</if_sid>
+    <regex>--</regex>
+    <description>SQL Injection with comment-based bypass detected</description>
+    <group>sql_injection,bypass_technique,</group>
+  </rule>
+
+  <!-- Brute Force Detection -->
+  <rule id="100005" level="8">
+    <if_sid>1002</if_sid>
+    <regex>brute_force</regex>
+    <description>Brute force attack attempt detected</description>
+    <group>brute_force,</group>
+  </rule>
+
+  <!-- Multiple Failed Login Attempts -->
+  <rule id="100006" level="9">
+    <if_sid>100005</if_sid>
+    <frequency>5</frequency>
+    <timeframe>300</timeframe>
+    <same_source_ip />
+    <description>Multiple brute force attempts from same IP</description>
+    <group>brute_force,multiple_attempts,</group>
+  </rule>
+
+  <!-- Rapid Login Attempts -->
+  <rule id="100007" level="9">
+    <if_sid>100005</if_sid>
+    <frequency>10</frequency>
+    <timeframe>60</timeframe>
+    <same_source_ip />
+    <description>Rapid login attempts detected - potential brute force</description>
+    <group>brute_force,rapid_attempts,</group>
+  </rule>
+
+  <!-- Authentication Failure -->
+  <rule id="100008" level="5">
+    <if_sid>1002</if_sid>
+    <regex>401</regex>
+    <description>Authentication failed</description>
+    <group>authentication_failure,</group>
+  </rule>
+
+  <!-- Multiple Authentication Failures -->
+  <rule id="100009" level="7">
+    <if_sid>100008</if_sid>
+    <frequency>3</frequency>
+    <timeframe>60</timeframe>
+    <same_source_ip />
+    <description>Multiple authentication failures from same IP</description>
+    <group>authentication_failure,multiple_failures,</group>
+  </rule>
+
+  <!-- Database Error -->
+  <rule id="100010" level="12">
+    <if_sid>1002</if_sid>
+    <regex>500</regex>
+    <description>Database error - Potential exploitation</description>
+    <group>database_error,critical,</group>
+  </rule>
+
+  <!-- SQL Syntax Error -->
+  <rule id="100011" level="13">
+    <if_sid>100010</if_sid>
+    <regex>SQL syntax error</regex>
+    <description>SQL syntax error - Database exploitation attempt</description>
+    <group>database_error,sql_syntax_error,critical,</group>
+  </rule>
+
+  <!-- Successful Authentication -->
+  <rule id="100012" level="3">
+    <if_sid>1002</if_sid>
+    <regex>200</regex>
+    <description>Successful authentication</description>
+    <group>authentication_success,</group>
+  </rule>
+
+  <!-- Successful Attack -->
+  <rule id="100013" level="8">
+    <if_sid>100012</if_sid>
+    <regex>sql_injection|brute_force</regex>
+    <description>Successful attack - Credentials compromised</description>
+    <group>attack_success,credential_compromise,</group>
+  </rule>
+
+  <!-- Bot Detection -->
+  <rule id="100014" level="6">
+    <if_sid>1002</if_sid>
+    <regex>bot|crawler|spider</regex>
+    <description>Automated bot detected</description>
+    <group>bot_detection,automated_attack,</group>
+  </rule>
+
+  <!-- Unusual User Agent -->
+  <rule id="100015" level="4">
+    <if_sid>1002</if_sid>
+    <regex>curl|wget|python|postman</regex>
+    <description>Unusual user agent detected</description>
+    <group>unusual_user_agent,</group>
+  </rule>
+
+  <!-- High Volume Requests -->
+  <rule id="100016" level="7">
+    <if_sid>1002</if_sid>
+    <frequency>50</frequency>
+    <timeframe>60</timeframe>
+    <same_source_ip />
+    <description>High volume of requests from same IP</description>
+    <group>high_volume_requests,ddos_potential,</group>
+  </rule>
+
+  <!-- Attack Pattern Analysis -->
+  <rule id="100017" level="8">
+    <if_sid>100005</if_sid>
+    <regex>password|123456|admin|test</regex>
+    <description>Common password patterns detected in brute force</description>
+    <group>brute_force,common_passwords,</group>
+  </rule>
+
+  <!-- SQL Injection Payload Analysis -->
+  <rule id="100018" level="11">
+    <if_sid>100001</if_sid>
+    <regex>information_schema|mysql\.user|sys\.databases</regex>
+    <description>Advanced SQL injection payload detected</description>
+    <group>sql_injection,advanced_payload,</group>
+  </rule>
+
+  <!-- Time-based Attack -->
+  <rule id="100019" level="6">
+    <if_sid>1002</if_sid>
+    <time>23:00-06:00</time>
+    <frequency>3</frequency>
+    <timeframe>300</timeframe>
+    <same_source_ip />
+    <description>Night-time attack attempts detected</description>
+    <group>time_based_attack,night_activity,</group>
+  </rule>
+
+  <!-- Geographic Anomaly -->
+  <rule id="100020" level="5">
+    <if_sid>1002</if_sid>
+    <regex>foreign_ip_pattern</regex>
+    <description>Foreign IP address accessing system</description>
+    <group>geographic_anomaly,foreign_access,</group>
+  </rule>
+
+</group>
