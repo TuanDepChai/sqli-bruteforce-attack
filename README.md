@@ -103,23 +103,27 @@ echo "Brute Force: $(grep -c 'brute_force' logs/attacks.log)"
 
 ## 🤖 AI/ML Log Collection
 
-### Ubuntu Server Deployment
+### Local Deployment
 ```bash
-# One-command deployment
-curl -sSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/scripts/web-server-deployment.sh | bash
-```
+# 1. Clone and setup
+git clone https://github.com/TuanDepChai/sqli-bruteforce-attack.git
+cd sqli-bruteforce-attack
+npm install
 
-### Generate Logs for AI Analysis
-```bash
-# Generate comprehensive attack logs
-chmod +x scripts/generate-logs.sh
+# 2. Start application
+npm run dev
+
+# 3. Generate logs for AI analysis
 ./scripts/generate-logs.sh
+
+# 4. Configure Wazuh agent (if needed)
+./scripts/config-wazuh-agent.sh
 ```
 
 ### Features
-- **Automated Setup**: Node.js, dependencies, systemd service
+- **Local Development**: Easy setup and testing
 - **Log Generation**: Comprehensive attack logs for AI analysis
-- **Single Format**: All logs in `logs/attacks.log` for easy processing
+- **Wazuh Integration**: Ready for Wazuh agent log collection
 - **AI/ML Ready**: Optimized for unsupervised learning algorithms
 
 ## 📁 Log Format
@@ -204,6 +208,7 @@ npm rebuild better-sqlite3
 
 ## 📚 Documentation
 
+- **Local Deployment**: [LOCAL-DEPLOYMENT.md](LOCAL-DEPLOYMENT.md)
 - **Ubuntu Deployment**: [UBUNTU-WEBSERVER-DEPLOYMENT.md](UBUNTU-WEBSERVER-DEPLOYMENT.md)
 - **Attack Examples**: [scripts/attack-examples.ts](scripts/attack-examples.ts)
 

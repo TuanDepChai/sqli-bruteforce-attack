@@ -91,6 +91,7 @@
     "reset": "rm -rf vulnerable.db && npm run dev",
     "logs": "tail -f logs/attacks.log",
     "generate-logs": "./scripts/generate-logs.sh",
+    "config-wazuh": "./scripts/config-wazuh-agent.sh",
     "stats": "echo 'Total logs:' && wc -l logs/attacks.log 2>/dev/null || echo 'No logs yet'"
   }
 }
