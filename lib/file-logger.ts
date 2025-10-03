@@ -22,7 +22,11 @@ function formatLogEntry(entry: LogEntry): string {
   const data = entry.data
   
   // Extract key information with fallbacks
-  const ip = data.ip_address || '127.0.0.1'
+  let ip = data.ip_address || '127.0.0.1'
+  // Remove IPv6 prefix if present
+  if (ip.startsWith('::ffff:')) {
+    ip = ip.substring(7)
+  }
   const method = data.request_method || 'POST'
   const uri = data.uri || '/api/login'
   const statusCode = data.status_code || 200
