@@ -164,64 +164,98 @@ Located in `scripts/attack-examples.ts`:
 - **Password Mutations** - L33t speak and variations
 - **Full Attack Suite** - Comprehensive testing framework
 
-## Installation & Setup (Ubuntu/Linux)
+## 🚀 Quick Start
 
 ### Prerequisites
+- **Node.js**: 18.x or higher
+- **npm/pnpm**: Latest version
+- **OS**: Windows, macOS, or Linux
 
+### Installation Steps
+
+\`\`\`bash
+# 1. Clone repository
+git clone https://github.com/TuanDepChai/sqli-bruteforce-attack.git
+cd sqli-bruteforce-attack
+
+# 2. Install dependencies
+npm install
+# or
+pnpm install
+
+# 3. Start application
+npm run dev
+\`\`\`
+
+### Access Application
+- **Web Interface**: http://localhost:3000
+- **Admin Dashboard**: http://localhost:3000/admin
+- **Help Documentation**: http://localhost:3000/help
+
+## 📋 Detailed Setup
+
+### Windows Setup
+\`\`\`bash
+# Install Node.js from https://nodejs.org/
+# Then run:
+npm install
+npm run dev
+\`\`\`
+
+### macOS Setup
+\`\`\`bash
+# Install Node.js via Homebrew
+brew install node
+npm install
+npm run dev
+\`\`\`
+
+### Ubuntu/Linux Setup
 \`\`\`bash
 # Update system packages
 sudo apt update && sudo apt upgrade -y
 
-# Install Node.js 20+ (LTS recommended)
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+# Install Node.js 18+ (LTS recommended)
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # Install build essentials (required for better-sqlite3)
 sudo apt install -y build-essential python3
 
-# Verify installation
-node --version  # Should be v20.x or higher
-npm --version   # Should be v10.x or higher
-\`\`\`
-
-### Installation Steps
-
-\`\`\`bash
-# 1. Clone or download the project
-cd /path/to/sql-attack-login
-
-# 2. Install dependencies
+# Clone and setup project
+git clone https://github.com/TuanDepChai/sqli-bruteforce-attack.git
+cd sqli-bruteforce-attack
 npm install
-
-# 3. The application will automatically:
-#    - Create vulnerable.db (SQLite database)
-#    - Create logs/ directory
-#    - Initialize database tables
-#    - Insert default users
-
-# 4. Verify directory structure
-ls -la
-# You should see:
-# - vulnerable.db (created on first run)
-# - logs/ (created on first run)
-# - app/, components/, lib/, scripts/, styles/, etc.
+npm run dev
 \`\`\`
 
-### Running the Application
-
+### Production Deployment
 \`\`\`bash
-# Development mode (with hot reload)
-npm run dev
-
-# Production build
+# Build for production
 npm run build
 npm start
 
 # Custom port
-PORT=3001 npm run dev
+PORT=3001 npm start
+\`\`\`
 
-# The application will be available at:
-# http://localhost:3000 (or your custom port)
+## 🧪 Testing
+
+### Automated Testing Scripts
+- **Windows**: \`.\scripts\test-attacks-windows.ps1\`
+- **Linux/macOS**: \`./scripts/test-attacks-linux.sh\`
+
+### Manual Testing
+\`\`\`bash
+# Normal login
+curl -X POST http://localhost:3000/api/login \\
+  -H "Content-Type: application/json" \\
+  -d '{"username":"admin","password":"admin123"}'
+
+# SQL injection
+curl -X POST http://localhost:3000/api/login \\
+  -H "Content-Type: application/json" \\
+  -d '{"username":"admin'\'' OR '\''1'\''='\''1","password":"anything"}'
 \`\`\`
 
 ### Verifying Installation

@@ -68,9 +68,21 @@
     "tw-animate-css": "1.3.3",
     "typescript": "^5"
   },
-  "name": "my-v0-project",
-  "version": "0.1.0",
-  "private": true,
+  "name": "sqli-bruteforce-attack",
+  "version": "1.0.0",
+  "description": "Professional Security Training Platform - Intentionally Vulnerable Web Application for SQL Injection and Brute Force Attack Detection with OSSEC Integration",
+  "keywords": ["security", "sql-injection", "brute-force", "penetration-testing", "ossec", "siem", "cybersecurity", "educational"],
+  "author": "TuanDepChai",
+  "license": "MIT",
+  "homepage": "https://github.com/TuanDepChai/sqli-bruteforce-attack",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TuanDepChai/sqli-bruteforce-attack.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TuanDepChai/sqli-bruteforce-attack/issues"
+  },
+  "private": false,
   "scripts": {
     "build": "next build",
     "dev": "next dev",

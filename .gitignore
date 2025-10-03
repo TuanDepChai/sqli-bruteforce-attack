@@ -128,3 +128,25 @@ Thumbs.db
 # Test files
 test-*.js
 *-test.js
+
+# Python cache (for ML analysis scripts)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# OSSEC/Wazuh temporary files
+ossec-tmp/
+wazuh-tmp/
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+
+# Backup files
+*.bak
+*.backup
+*.old
