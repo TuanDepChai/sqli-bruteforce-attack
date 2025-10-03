@@ -101,7 +101,7 @@ echo "SQL Injection: $(grep -c 'sql_injection' logs/attacks.log)"
 echo "Brute Force: $(grep -c 'brute_force' logs/attacks.log)"
 ```
 
-## 🛡️ Wazuh Integration (Production)
+## 🤖 AI/ML Log Collection
 
 ### Ubuntu Server Deployment
 ```bash
@@ -109,11 +109,18 @@ echo "Brute Force: $(grep -c 'brute_force' logs/attacks.log)"
 curl -sSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/scripts/web-server-deployment.sh | bash
 ```
 
+### Generate Logs for AI Analysis
+```bash
+# Generate comprehensive attack logs
+chmod +x scripts/generate-logs.sh
+./scripts/generate-logs.sh
+```
+
 ### Features
 - **Automated Setup**: Node.js, dependencies, systemd service
-- **Wazuh Agent**: Configuration template for log monitoring
-- **Log Collection**: All attack logs ready for Wazuh collection
-- **AI/ML Ready**: Logs formatted for unsupervised learning
+- **Log Generation**: Comprehensive attack logs for AI analysis
+- **Single Format**: All logs in `logs/attacks.log` for easy processing
+- **AI/ML Ready**: Optimized for unsupervised learning algorithms
 
 ## 📁 Log Format
 
@@ -138,10 +145,10 @@ Each attack generates a single-line log for AI/ML analysis:
 - 🎯 **Attack Classification** - Automatic categorization
 
 ### Logging System
-- 📝 **Multi-file Logging** - Organized by attack type
-- 🔄 **Automatic Rotation** - File management
+- 📝 **Single Log File** - All attacks in `logs/attacks.log`
+- 🔄 **Automatic Rotation** - File management at 10MB
 - 🕐 **Vietnam Timezone** - UTC+7 timestamps
-- 📊 **Complete Data** - 15+ fields per log
+- 📊 **Complete Data** - 15+ fields per log for AI analysis
 
 ## 🔧 Development
 
@@ -154,8 +161,11 @@ npm run dev
 npm run build
 npm start
 
-# Custom port
-PORT=3001 npm run dev
+# Generate logs for AI
+./scripts/generate-logs.sh
+
+# Monitor logs
+npm run logs
 ```
 
 ### Database Operations

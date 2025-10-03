@@ -89,6 +89,8 @@
     "start": "next start",
     "clean": "rm -rf .next vulnerable.db logs/*.log",
     "reset": "rm -rf vulnerable.db && npm run dev",
-    "logs": "tail -f logs/attacks.log"
+    "logs": "tail -f logs/attacks.log",
+    "generate-logs": "./scripts/generate-logs.sh",
+    "stats": "echo 'Total logs:' && wc -l logs/attacks.log 2>/dev/null || echo 'No logs yet'"
   }
 }

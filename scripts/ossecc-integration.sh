@@ -88,20 +88,58 @@ sudo systemctl daemon-reload
 sudo systemctl enable sqli-bruteforce
 sudo systemctl start sqli-bruteforce
 
-# 9. Create Log Collection Configuration
-echo "📝 Setting up log collection for AI analysis..."
+# 9. Configure Wazuh Agent for Log Monitoring
+echo "🛡️ Configuring Wazuh agent for log monitoring..."
+echo "Note: Wazuh agent is already installed. You need to configure it manually to monitor these log files:"
 echo ""
-echo "Log files will be created at:"
-echo "  - $PROJECT_PATH/logs/attacks.log (All attacks - MAIN FILE)"
-echo "  - $PROJECT_PATH/logs/sql_injection.log (SQL injection only)"
-echo "  - $PROJECT_PATH/logs/brute_force.log (Brute force only)"
-echo "  - $PROJECT_PATH/logs/critical-attacks.log (Successful attacks)"
-echo "  - $PROJECT_PATH/logs/security-events.log (Security events)"
+echo "Log files to monitor:"
+echo "  - $PROJECT_PATH/logs/attacks.log"
+echo "  - $PROJECT_PATH/logs/sql_injection.log"
+echo "  - $PROJECT_PATH/logs/brute_force.log"
+echo "  - $PROJECT_PATH/logs/critical-attacks.log"
+echo "  - $PROJECT_PATH/logs/security-events.log"
 echo ""
-echo "For AI analysis, focus on: $PROJECT_PATH/logs/attacks.log"
-echo "This file contains all attack attempts in single-line format."
+echo "Add these to your Wazuh agent configuration:"
+echo "  <localfile>"
+echo "    <log_format>syslog</log_format>"
+echo "    <location>$PROJECT_PATH/logs/attacks.log</location>"
+echo "  </localfile>"
 
-# 10. Create Test Script
+# 10. Create Wazuh Configuration Template
+echo "📋 Creating Wazuh configuration template..."
+tee $PROJECT_PATH/wazuh-agent-config.xml << EOF
+<!-- Wazuh Agent Configuration for SQLi BruteForce Attack Detection -->
+<!-- Add this to your Wazuh agent configuration file -->
+
+<localfile>
+  <log_format>syslog</log_format>
+  <location>$PROJECT_PATH/logs/attacks.log</location>
+</localfile>
+
+<localfile>
+  <log_format>syslog</log_format>
+  <location>$PROJECT_PATH/logs/sql_injection.log</location>
+</localfile>
+
+<localfile>
+  <log_format>syslog</log_format>
+  <location>$PROJECT_PATH/logs/brute_force.log</location>
+</localfile>
+
+<localfile>
+  <log_format>syslog</log_format>
+  <location>$PROJECT_PATH/logs/critical-attacks.log</location>
+</localfile>
+
+<localfile>
+  <log_format>syslog</log_format>
+  <location>$PROJECT_PATH/logs/security-events.log</location>
+</localfile>
+EOF
+
+echo "✅ Wazuh configuration template created at: $PROJECT_PATH/wazuh-agent-config.xml"
+
+# 11. Create Test Script
 echo "🧪 Creating test script..."
 tee $PROJECT_PATH/test-attacks.sh << EOF
 #!/bin/bash
@@ -143,19 +181,21 @@ curl -X POST http://localhost:3000/api/login \\
 
 echo "✅ Tests completed! Check logs:"
 echo "📝 Attack logs: $PROJECT_PATH/logs/attacks.log"
-echo "🤖 AI Analysis: Use logs/attacks.log for machine learning"
+echo "🛡️ Wazuh logs: Check Wazuh manager dashboard"
 EOF
 
 chmod +x $PROJECT_PATH/test-attacks.sh
 
-# 11. Verify Installation
+# 12. Verify Installation
 echo "✅ Verifying installation..."
 echo "Application Status:"
 sudo systemctl status sqli-bruteforce --no-pager -l
 
-echo "Log Files Status:"
-ls -la $PROJECT_PATH/logs/ 2>/dev/null || echo "Log directory not created yet - will be created on first attack"
+echo "Wazuh Agent Status:"
+sudo systemctl status wazuh-agent --no-pager -l || echo "Wazuh agent status check failed - please check manually"
 
+echo "Log Files:"
+ls -la $PROJECT_PATH/logs/
 
 echo "Network Status:"
 sudo netstat -tlnp | grep :3000
@@ -163,10 +203,12 @@ sudo netstat -tlnp | grep :3000
 echo "🎉 Web Server deployment completed!"
 echo "🌐 Web App: http://$WEB_SERVER_IP:3000"
 echo "📝 Logs: $PROJECT_PATH/logs/"
+echo "🛡️ Wazuh Config: $PROJECT_PATH/wazuh-agent-config.xml"
 echo "🧪 Test: $PROJECT_PATH/test-attacks.sh"
 echo ""
 echo "📋 Next steps:"
-echo "1. Run test script to generate logs: $PROJECT_PATH/test-attacks.sh"
-echo "2. Check main log file: $PROJECT_PATH/logs/attacks.log"
-echo "3. Configure Wazuh agent to collect logs (if needed)"
-echo "4. Use logs for AI analysis and detection"
+echo "1. Configure Wazuh agent to monitor log files"
+echo "2. Copy configuration from: $PROJECT_PATH/wazuh-agent-config.xml"
+echo "3. Restart Wazuh agent: sudo systemctl restart wazuh-agent"
+echo "4. Run test script: $PROJECT_PATH/test-attacks.sh"
+echo "5. Check Wazuh manager for incoming logs"
