@@ -2,7 +2,7 @@
 
 <!-- SQL Injection Detection -->
 <rule id="100001" level="12">
-  <decoded_as>sqli-bruteforce</decoded_as>
+  <decoded_as>sqli-bruteforce-json</decoded_as>
   <field name="attack_type">sql_injection</field>
   <description>SQL Injection attack detected</description>
   <group>attack,sql_injection,</group>
@@ -12,7 +12,7 @@
 
 <!-- Brute Force Detection -->
 <rule id="100002" level="10">
-  <decoded_as>sqli-bruteforce</decoded_as>
+  <decoded_as>sqli-bruteforce-json</decoded_as>
   <field name="attack_type">brute_force</field>
   <description>Brute Force attack detected</description>
   <group>attack,brute_force,</group>
@@ -22,7 +22,7 @@
 
 <!-- Credential Stuffing Detection -->
 <rule id="100003" level="11">
-  <decoded_as>sqli-bruteforce</decoded_as>
+  <decoded_as>sqli-bruteforce-json</decoded_as>
   <field name="attack_type">credential_stuffing</field>
   <description>Credential Stuffing attack detected</description>
   <group>attack,credential_stuffing,</group>
@@ -32,7 +32,7 @@
 
 <!-- Failed Login Attempts -->
 <rule id="100004" level="5">
-  <decoded_as>sqli-bruteforce</decoded_as>
+  <decoded_as>sqli-bruteforce-json</decoded_as>
   <field name="status_code">401</field>
   <description>Failed login attempt</description>
   <group>authentication,failed_login,</group>
@@ -41,7 +41,7 @@
 
 <!-- Successful Login -->
 <rule id="100005" level="3">
-  <decoded_as>sqli-bruteforce</decoded_as>
+  <decoded_as>sqli-bruteforce-json</decoded_as>
   <field name="status_code">200</field>
   <field name="login_result">Authentication successful</field>
   <description>Successful authentication</description>
@@ -49,108 +49,59 @@
   <options>no_full_log</options>
 </rule>
 
-<!-- Suspicious SQL Queries -->
+<!-- High Risk Score Alert -->
 <rule id="100006" level="8">
-  <decoded_as>sqli-bruteforce</decoded_as>
-  <regex>SELECT.*FROM.*WHERE.*OR.*=</regex>
-  <field name="sql_query">SELECT.*FROM.*WHERE.*OR.*=</field>
-  <description>Suspicious SQL query with OR condition detected</description>
-  <group>attack,suspicious_query,</group>
+  <decoded_as>sqli-bruteforce-json</decoded_as>
+  <field name="risk_score">>80</field>
+  <description>High risk attack detected</description>
+  <group>attack,high_risk,</group>
   <options>no_full_log</options>
 </rule>
 
-<!-- UNION SELECT Attack -->
-<rule id="100007" level="12">
-  <decoded_as>sqli-bruteforce</decoded_as>
-  <regex>UNION.*SELECT</regex>
-  <field name="sql_query">UNION.*SELECT</field>
-  <description>UNION SELECT SQL injection attack detected</description>
-  <group>attack,sql_injection,union_select,</group>
+<!-- Critical Severity Alert -->
+<rule id="100007" level="15">
+  <decoded_as>sqli-bruteforce-json</decoded_as>
+  <field name="attack_severity">critical</field>
+  <description>Critical severity attack detected</description>
+  <group>attack,critical,</group>
   <options>no_full_log</options>
 </rule>
 
-<!-- OR 1=1 Attack -->
-<rule id="100008" level="12">
-  <decoded_as>sqli-bruteforce</decoded_as>
-  <regex>OR.*1.*=.*1</regex>
-  <field name="sql_query">OR.*1.*=.*1</field>
-  <description>OR 1=1 SQL injection attack detected</description>
-  <group>attack,sql_injection,or_attack,</group>
+<!-- SQL Query Analysis -->
+<rule id="100008" level="8">
+  <decoded_as>sqli-bruteforce-json</decoded_as>
+  <regex>OR.*1.*=.*1|UNION.*SELECT|--|/\*</regex>
+  <field name="sql_query">OR.*1.*=.*1|UNION.*SELECT|--|/\*</field>
+  <description>Suspicious SQL query pattern detected</description>
+  <group>attack,sql_injection,patterns,</group>
   <options>no_full_log</options>
 </rule>
 
-<!-- Comment Injection -->
-<rule id="100009" level="12">
-  <decoded_as>sqli-bruteforce</decoded_as>
-  <regex>--|/\*|\*/|#</regex>
-  <field name="sql_query">--|/\*|\*/|#</field>
-  <description>SQL comment injection attack detected</description>
-  <group>attack,sql_injection,comment_injection,</group>
-  <options>no_full_log</options>
-</rule>
-
-<!-- High Response Time (Potential DoS) -->
-<rule id="100010" level="7">
-  <decoded_as>sqli-bruteforce</decoded_as>
-  <regex>([0-9]+)ms</regex>
-  <if_sid>100001,100002,100003</if_sid>
-  <condition>response_time > 5000ms</condition>
+<!-- Performance Analysis -->
+<rule id="100009" level="7">
+  <decoded_as>sqli-bruteforce-json</decoded_as>
+  <field name="response_time_ms">>5000</field>
   <description>High response time during attack - potential DoS</description>
   <group>attack,performance,</group>
   <options>no_full_log</options>
 </rule>
 
-<!-- Multiple Attack Types from Same IP -->
-<rule id="100011" level="9">
-  <decoded_as>sqli-bruteforce</decoded_as>
-  <if_sid>100001,100002,100003</if_sid>
-  <same_source_ip />
-  <frequency>5</frequency>
-  <timeframe>300</timeframe>
-  <description>Multiple attack types from same IP address</description>
-  <group>attack,multiple_attacks,</group>
+<!-- Large Payload Analysis -->
+<rule id="100010" level="7">
+  <decoded_as>sqli-bruteforce-json</decoded_as>
+  <field name="payload_size_bytes">>1000</field>
+  <description>Large payload size detected</description>
+  <group>attack,large_payload,</group>
   <options>no_full_log</options>
 </rule>
 
-<!-- Rapid Failed Logins -->
-<rule id="100012" level="8">
-  <decoded_as>sqli-bruteforce</decoded_as>
-  <if_sid>100004</if_sid>
-  <same_source_ip />
-  <frequency>10</frequency>
-  <timeframe>60</timeframe>
-  <description>Rapid failed login attempts from same IP</description>
-  <group>attack,brute_force,rapid_attempts,</group>
-  <options>no_full_log</options>
-</rule>
-
-<!-- Unusual User Agents -->
-<rule id="100013" level="6">
-  <decoded_as>sqli-bruteforce</decoded_as>
+<!-- Suspicious User Agents -->
+<rule id="100011" level="6">
+  <decoded_as>sqli-bruteforce-json</decoded_as>
   <regex>curl|wget|python|bot|scanner</regex>
   <field name="user_agent">curl|wget|python|bot|scanner</field>
   <description>Unusual user agent detected</description>
   <group>attack,suspicious_ua,</group>
-  <options>no_full_log</options>
-</rule>
-
-<!-- Database Error Detection -->
-<rule id="100014" level="8">
-  <decoded_as>sqli-bruteforce</decoded_as>
-  <regex>SQL.*error|syntax.*error|database.*error</regex>
-  <field name="error_message">SQL.*error|syntax.*error|database.*error</field>
-  <description>Database error detected - possible SQL injection attempt</description>
-  <group>attack,database_error,</group>
-  <options>no_full_log</options>
-</rule>
-
-<!-- Large Payload Size -->
-<rule id="100015" level="7">
-  <decoded_as>sqli-bruteforce</decoded_as>
-  <regex>([0-9]+)bytes</regex>
-  <condition>payload_size > 1000</condition>
-  <description>Large payload size detected</description>
-  <group>attack,large_payload,</group>
   <options>no_full_log</options>
 </rule>
 

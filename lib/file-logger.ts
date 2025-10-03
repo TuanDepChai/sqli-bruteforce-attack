@@ -17,7 +17,7 @@ interface LogEntry {
 }
 
 function formatLogEntry(entry: LogEntry): string {
-  // Wazuh SIEM optimized format with clear field separators
+  // JSON format for easy parsing and AI training
   const timestamp = getWazuhTimestamp()
   const data = entry.data
   
@@ -27,20 +27,11 @@ function formatLogEntry(entry: LogEntry): string {
   if (ip.startsWith('::ffff:')) {
     ip = ip.substring(7)
   }
-  const method = data.request_method || 'POST'
-  const uri = data.uri || '/api/login'
-  const statusCode = data.status_code || 200
-  const userAgent = data.user_agent || 'Unknown'
+  
   const username = data.username_attempt || 'N/A'
   const password = data.password_attempt || 'N/A'
   const attackType = data.attack_type || 'normal_login'
   const success = data.success
-  const errorMessage = data.error_message || ''
-  const sqlQuery = data.sql_query || ''
-  const responseTime = data.response_time_ms || 0
-  const payloadSize = data.payload_size || 0
-  const referer = data.referer || 'N/A'
-  const sessionToken = data.session_id || `SESS_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   
   // Build query string with payload for URI
   let queryString = ''
@@ -65,16 +56,92 @@ function formatLogEntry(entry: LogEntry): string {
     }
   }
   
-  // Clean and escape values for better parsing
-  const cleanUserAgent = userAgent.replace(/"/g, "'")
-  const cleanLoginMessage = loginMessage.replace(/"/g, "'")
-  const cleanErrorMessage = errorMessage.replace(/"/g, "'")
-  const cleanSqlQuery = sqlQuery.replace(/"/g, "'")
-  const cleanReferer = referer.replace(/"/g, "'")
+  // Create structured JSON log entry
+  const logEntry = {
+    timestamp: timestamp,
+    ip_address: ip,
+    method: data.request_method || 'POST',
+    uri: data.uri || '/api/login',
+    full_uri: `${data.uri || '/api/login'}${queryString ? '?' + queryString : ''}`,
+    status_code: data.status_code || 200,
+    user_agent: data.user_agent || 'Unknown',
+    username_attempt: username,
+    password_attempt: password,
+    login_result: loginMessage,
+    error_message: data.error_message || null,
+    session_token: data.session_id || `SESS_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    attack_type: attackType,
+    sql_query: data.sql_query || null,
+    referer: data.referer || null,
+    response_time_ms: data.response_time_ms || 0,
+    payload_size_bytes: data.payload_size || 0,
+    request_headers: data.request_headers || null,
+    success: success === 'YES' || success === true,
+    geo_location: data.geo_location || null,
+    device_fingerprint: data.device_fingerprint || null,
+    additional_data: data.additional_data || null,
+    // AI/ML specific fields
+    attack_severity: getAttackSeverity(attackType, success),
+    risk_score: calculateRiskScore(data),
+    timestamp_unix: Date.now(),
+    log_type: 'attack_detection'
+  }
   
-  // Format with clear field separators for easy regex parsing
-  // Using consistent delimiters: space for basic fields, quotes for complex fields
-  return `${timestamp} IP=${ip} METHOD=${method} URI=${uri}${queryString ? '?' + queryString : ''} STATUS=${statusCode} USER_AGENT="${cleanUserAgent}" LOGIN_RESULT="${cleanLoginMessage}" ERROR="${cleanErrorMessage}" SESSION="${sessionToken}" ATTACK_TYPE="${attackType}" SQL_QUERY="${cleanSqlQuery}" REFERER="${cleanReferer}" RESPONSE_TIME="${responseTime}ms" PAYLOAD_SIZE="${payloadSize}bytes"\n`
+  // Return JSON string with newline for file writing
+  return JSON.stringify(logEntry) + '\n'
+}
+
+// Helper function to determine attack severity
+function getAttackSeverity(attackType: string, success: any): string {
+  if (success === 'YES' || success === true) {
+    return 'critical' // Successful attacks are most severe
+  }
+  
+  switch (attackType) {
+    case 'sql_injection':
+      return 'high'
+    case 'brute_force':
+    case 'credential_stuffing':
+      return 'medium'
+    default:
+      return 'low'
+  }
+}
+
+// Helper function to calculate risk score (0-100)
+function calculateRiskScore(data: any): number {
+  let score = 0
+  
+  // Base score for attack type
+  switch (data.attack_type) {
+    case 'sql_injection':
+      score += 80
+      break
+    case 'brute_force':
+      score += 60
+      break
+    case 'credential_stuffing':
+      score += 70
+      break
+    default:
+      score += 20
+  }
+  
+  // Bonus for successful attacks
+  if (data.success === 'YES' || data.success === true) {
+    score += 20
+  }
+  
+  // Bonus for suspicious patterns
+  if (data.sql_query && data.sql_query.includes('OR')) {
+    score += 10
+  }
+  if (data.sql_query && data.sql_query.includes('UNION')) {
+    score += 15
+  }
+  
+  // Cap at 100
+  return Math.min(score, 100)
 }
 
 // Helper function to get Vietnam timezone timestamp for Wazuh
