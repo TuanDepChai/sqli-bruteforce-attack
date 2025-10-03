@@ -10,7 +10,7 @@ The application generates simplified JSON logs with essential fields including S
 
 ```json
 {
-  "timestamp": "2025-10-03 15:52:45.139 +07:00",
+  "timestamp": "2025-10-03T16:31:07.414+0700",
   "method": "POST",
   "url": "/api/login?username=admin&password=wrongpass",
   "username": "admin",
@@ -165,6 +165,7 @@ sudo tail -f /var/ossec/logs/archives/archives.json | grep "attacks.log" | jq '.
 
 ### AI/ML Ready:
 - ✅ **Essential fields only** - Clean, minimal JSON structure (10 fields)
+- ✅ **ISO8601 timestamps** - Standard format for Wazuh/Filebeat parsing
 - ✅ **Binary classification** - Success/failure flags
 - ✅ **Text analysis** - Usernames, passwords, user agents, SQL queries
 - ✅ **SQL query analysis** - Pattern recognition for injection attacks

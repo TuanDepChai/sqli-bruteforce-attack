@@ -135,12 +135,13 @@ function getVietnamTimestamp() {
   return vietnamTime.toISOString()
 }
 
-// Helper function to get Wazuh compatible timestamp with actual +7 hours
+// Helper function to get ISO8601 standard timestamp for Wazuh/Filebeat
 function getWazuhTimestamp() {
   const now = new Date()
-  // Add 7 hours directly
+  // Add 7 hours directly for Vietnam timezone
   const vietnamTime = new Date(now.getTime() + (7 * 60 * 60 * 1000))
-  return vietnamTime.toISOString().replace('T', ' ').replace('Z', ' +07:00')
+  // Format: 2025-10-03T15:30:00.000+0700 (ISO8601 standard for Wazuh/Filebeat)
+  return vietnamTime.toISOString().replace('Z', '+0700')
 }
 
 function rotateLogFile(filePath: string) {
