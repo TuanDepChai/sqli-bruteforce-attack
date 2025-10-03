@@ -78,7 +78,6 @@ export function getDatabase() {
 
       CREATE TABLE IF NOT EXISTS security_events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        event_type TEXT,
         severity TEXT,
         description TEXT,
         ip_address TEXT,

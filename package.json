@@ -86,7 +86,9 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "clean": "rm -rf .next vulnerable.db logs/*.log",
+    "reset": "rm -rf vulnerable.db && npm run dev",
+    "logs": "tail -f logs/attacks.log"
   }
 }

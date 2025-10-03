@@ -101,7 +101,6 @@ export function logAttack(log: AttackLog) {
 
   if (log.success && log.attack_type !== "normal_login") {
     logSecurityEvent({
-      event_type: log.attack_type,
       severity: "critical",
       description: `Successful ${log.attack_type} attack detected`,
       ip_address: log.ip_address,
@@ -143,7 +142,6 @@ export function getAttackStats() {
 }
 
 export function logSecurityEvent(event: {
-  event_type: string
   severity: string
   description: string
   ip_address?: string
@@ -155,12 +153,11 @@ export function logSecurityEvent(event: {
   
   const stmt = db.prepare(`
     INSERT INTO security_events (
-      event_type, severity, description, ip_address, user_id, metadata, timestamp
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      severity, description, ip_address, user_id, metadata, timestamp
+    ) VALUES (?, ?, ?, ?, ?, ?)
   `)
 
   stmt.run(
-    event.event_type,
     event.severity,
     event.description,
     event.ip_address || null,
