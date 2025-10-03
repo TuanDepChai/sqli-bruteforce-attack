@@ -17,27 +17,66 @@ interface LogEntry {
 }
 
 function formatLogEntry(entry: LogEntry): string {
-  const separator = "=".repeat(80)
-  const lines = [separator, `[${entry.timestamp}] ${entry.level} - ${entry.type}`, separator]
-
-  // Format each field on its own line
-  for (const [key, value] of Object.entries(entry.data)) {
-    const formattedKey = key.replace(/_/g, " ").toUpperCase()
-    const formattedValue = typeof value === "object" ? JSON.stringify(value, null, 2) : value
-    lines.push(`${formattedKey.padEnd(25)}: ${formattedValue}`)
+  // Wazuh SIEM compatible format
+  const timestamp = getWazuhTimestamp()
+  const data = entry.data
+  
+  // Extract key information
+  const ip = data.ip_address || '127.0.0.1'
+  const method = data.request_method || 'POST'
+  const uri = '/api/login'
+  const statusCode = data.status_code || 200
+  const userAgent = data.user_agent || 'Unknown'
+  const username = data.username_attempt || 'N/A'
+  const password = data.password_attempt || 'N/A'
+  const attackType = data.attack_type || 'normal_login'
+  const success = data.success
+  const errorMessage = data.error_message || ''
+  const sqlQuery = data.sql_query || ''
+  
+  // Build query string with payload
+  let queryString = ''
+  if (username !== 'N/A') {
+    queryString += `username=${encodeURIComponent(username)}`
   }
-
-  lines.push(separator)
-  lines.push("") // Empty line between entries
-
-  return lines.join("\n")
+  if (password !== 'N/A') {
+    queryString += `&password=${encodeURIComponent(password)}`
+  }
+  
+  // Login fail message
+  let loginFailMessage = ''
+  if (!success) {
+    if (attackType === 'sql_injection') {
+      loginFailMessage = 'SQL syntax error - Malicious payload detected'
+    } else if (attackType === 'brute_force') {
+      loginFailMessage = 'Authentication failed - Brute force attempt'
+    } else {
+      loginFailMessage = 'Authentication failed - Invalid credentials'
+    }
+  } else {
+    loginFailMessage = 'Authentication successful'
+  }
+  
+  // PHP token equivalent (session-like identifier)
+  const sessionToken = `SESS_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  
+  // Format as complete single line log with all fields
+  return `${timestamp} ${ip} ${method} ${uri}${queryString ? '?' + queryString : ''} ${statusCode} "${userAgent}" "${loginFailMessage}" "${errorMessage || '-'}" "${sessionToken}" "${attackType}" "${sqlQuery}" "${data.referer || '-'}" "${data.response_time_ms || 0}ms" "${data.payload_size || 0}bytes" "${data.request_headers || '-'}"\n`
 }
 
-// Helper function to get Vietnam timezone timestamp
+// Helper function to get Vietnam timezone timestamp for Wazuh
 function getVietnamTimestamp() {
   const now = new Date()
   const vietnamTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }))
   return vietnamTime.toISOString()
+}
+
+// Helper function to get Wazuh compatible timestamp with actual +7 hours
+function getWazuhTimestamp() {
+  const now = new Date()
+  // Add 7 hours directly
+  const vietnamTime = new Date(now.getTime() + (7 * 60 * 60 * 1000))
+  return vietnamTime.toISOString().replace('T', ' ').replace('Z', ' +07:00')
 }
 
 function rotateLogFile(filePath: string) {

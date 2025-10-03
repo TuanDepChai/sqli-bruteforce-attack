@@ -19,6 +19,8 @@ export interface AttackLog {
   response_time_ms?: number
   payload_size?: number
   additional_data?: string
+  status_code?: number
+  server_response?: string
 }
 
 // Helper function to get Vietnam timezone timestamp
@@ -26,6 +28,21 @@ function getVietnamTimestamp() {
   const now = new Date()
   const vietnamTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }))
   return vietnamTime.toISOString()
+}
+
+// Helper function to get Vietnam timezone timestamp for display
+function getVietnamDisplayTimestamp() {
+  const now = new Date()
+  return now.toLocaleString("en-US", { 
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
 }
 
 export function logAttack(log: AttackLog) {
@@ -39,8 +56,9 @@ export function logAttack(log: AttackLog) {
       attack_type, sql_query, success, error_message, 
       user_agent, request_method, request_headers,
       geo_location, device_fingerprint, session_id,
-      referer, response_time_ms, payload_size, additional_data
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      referer, response_time_ms, payload_size, additional_data,
+      status_code, server_response
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   const result = stmt.run(
@@ -62,17 +80,21 @@ export function logAttack(log: AttackLog) {
     log.response_time_ms || null,
     log.payload_size || null,
     log.additional_data || null,
+    log.status_code || null,
+    log.server_response || null,
   )
 
+  const displayTimestamp = getVietnamDisplayTimestamp()
+  
   const logWithId = {
     id: result.lastInsertRowid,
-    timestamp: vietnamTimestamp,
+    timestamp: displayTimestamp,
     ...log,
   }
   logAttackToFile(logWithId)
 
   console.log("[ATTACK LOG]", {
-    timestamp: vietnamTimestamp,
+    timestamp: displayTimestamp,
     severity: log.success ? "HIGH" : "MEDIUM",
     ...log,
   })

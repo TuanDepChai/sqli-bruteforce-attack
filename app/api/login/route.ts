@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     const payloadSize = JSON.stringify({ username, password }).length
 
     // Determine attack type based on patterns detected
-    let attackType = "normal_login"
+    let attackType: "normal_login" | "sql_injection" | "brute_force" | "credential_stuffing" = "normal_login"
     if (containsSqlInjection) {
       attackType = "sql_injection"
     } else if (hasBruteForcePatterns) {
@@ -128,6 +128,8 @@ export async function POST(request: NextRequest) {
       referer: referer,
       response_time_ms: responseTime,
       payload_size: payloadSize,
+      status_code: 200,
+      server_response: "Authentication successful",
       additional_data: JSON.stringify({
         detectedPatterns: sqlInjectionPatterns
           .filter((p) => p.test(username) || p.test(password))
@@ -145,7 +147,16 @@ export async function POST(request: NextRequest) {
           failedAttemptsCount: failedAttempts,
           hasBruteForcePatterns
         },
-        timestamp: new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }),
+        timestamp: new Date().toLocaleString("en-US", { 
+          timeZone: "Asia/Ho_Chi_Minh",
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        }),
       }),
     })
 
@@ -163,6 +174,52 @@ export async function POST(request: NextRequest) {
                        hasBruteForcePatterns ? "Brute force attack pattern detected!" : null,
       })
     } else {
+      // Log failed login attempt
+      logAttack({
+        ip_address: ip,
+        username_attempt: username,
+        password_attempt: password,
+        attack_type: attackType,
+        sql_query: vulnerableQuery,
+        success: false,
+        user_agent: userAgent,
+        request_method: "POST",
+        request_headers: requestHeaders,
+        referer: referer,
+        response_time_ms: responseTime,
+        payload_size: payloadSize,
+        status_code: 401,
+        server_response: "Authentication failed - Invalid credentials",
+        additional_data: JSON.stringify({
+          detectedPatterns: sqlInjectionPatterns
+            .filter((p) => p.test(username) || p.test(password))
+            .map((p) => p.toString()),
+          bruteForceIndicators: {
+            rapidRequests,
+            multipleUsernames,
+            multiplePasswords,
+            highFailureRate,
+            dictionaryAttack,
+            isCommonPattern,
+            recentAttemptsCount: recentAttempts.count,
+            uniqueUsernames: recentAttempts.unique_usernames,
+            uniquePasswords: recentAttempts.unique_passwords,
+            failedAttemptsCount: failedAttempts,
+            hasBruteForcePatterns
+          },
+          timestamp: new Date().toLocaleString("en-US", { 
+            timeZone: "Asia/Ho_Chi_Minh",
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+          }),
+        }),
+      })
+      
       return NextResponse.json(
         {
           success: false,
@@ -186,6 +243,8 @@ export async function POST(request: NextRequest) {
       request_method: "POST",
       request_headers: requestHeaders,
       response_time_ms: responseTime,
+      status_code: 500,
+      server_response: "SQL syntax error - Database processing failed",
     })
 
     return NextResponse.json(

@@ -7,12 +7,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Shield, Lock, Terminal, AlertTriangle, Sparkles, BookOpen } from "lucide-react"
+import { Shield, Lock, Terminal, AlertTriangle, Sparkles, BookOpen, Eye, EyeOff, Zap, Target, User } from "lucide-react"
 import Link from "next/link"
 import { fadeInUp, staggerContainer, bounceIn, floatingAnimation } from "@/lib/animations"
 import { ParticleBackground } from "@/components/particle-background"
 import { AnimatedGradientBg } from "@/components/animated-gradient-bg"
 import { GlassCard } from "@/components/glass-card"
+import { FloatingElements, FloatingIcons, ParticleSystem } from "@/components/floating-elements"
+import { AnimatedInput, FloatingLabelInput } from "@/components/animated-input"
+import { InteractiveButton, AnimatedSubmitButton } from "@/components/interactive-button"
+import { LoadingAnimation, PulseLoading, DotLoading, WaveLoading } from "@/components/loading-animation"
+import { AnimatedResultDisplay } from "@/components/result-display"
+import { AnimatedHeader } from "@/components/animated-header"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
@@ -52,6 +58,9 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
       <ParticleBackground />
       <AnimatedGradientBg />
+      <FloatingElements />
+      <FloatingIcons />
+      <ParticleSystem />
 
       <motion.div
         className="absolute inset-0 opacity-30"
@@ -66,51 +75,7 @@ export default function LoginPage() {
       />
 
       {/* Header */}
-      <motion.header
-        className="border-b border-border relative z-10 backdrop-blur-md bg-background/60"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <motion.div
-            className="flex items-center gap-2"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400 }}
-          >
-            <motion.div {...floatingAnimation}>
-              <Shield className="w-6 h-6 text-primary" />
-            </motion.div>
-            <span className="font-mono text-lg font-semibold">SecLab</span>
-          </motion.div>
-          <div className="flex items-center gap-2">
-            <Link href="/help">
-              <motion.div
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 400 }}
-              >
-                <Button variant="outline" size="sm" className="backdrop-blur-sm bg-transparent">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Documentation
-                </Button>
-              </motion.div>
-            </Link>
-            <Link href="/admin">
-              <motion.div
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 400 }}
-              >
-                <Button variant="outline" size="sm" className="backdrop-blur-sm bg-transparent">
-                  <Terminal className="w-4 h-4 mr-2" />
-                  Admin Dashboard
-                </Button>
-              </motion.div>
-            </Link>
-          </div>
-        </div>
-      </motion.header>
+      <AnimatedHeader />
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center p-4 relative z-10">
@@ -255,115 +220,64 @@ export default function LoginPage() {
                   <CardDescription>Enter your credentials to access the system</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleLogin} className="space-y-4">
+                  <form onSubmit={handleLogin} className="space-y-6">
                     <motion.div
-                      className="space-y-2"
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
                     >
-                      <label className="text-sm font-medium">Username</label>
-                      <Input
+                      <FloatingLabelInput
+                        label="Username"
                         type="text"
                         value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Enter username"
-                        className="bg-secondary/50 backdrop-blur-sm transition-all duration-300 focus:scale-[1.02] focus:shadow-lg focus:shadow-primary/20"
-                        required
+                        onChange={setUsername}
+                        placeholder="Enter your username"
+                        icon={<User className="w-5 h-5" />}
                       />
                     </motion.div>
 
                     <motion.div
-                      className="space-y-2"
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5 }}
                     >
-                      <label className="text-sm font-medium">Password</label>
-                      <Input
+                      <FloatingLabelInput
+                        label="Password"
                         type="password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter password"
-                        className="bg-secondary/50 backdrop-blur-sm transition-all duration-300 focus:scale-[1.02] focus:shadow-lg focus:shadow-primary/20"
-                        required
+                        onChange={setPassword}
+                        placeholder="Enter your password"
+                        icon={<Lock className="w-5 h-5" />}
                       />
                     </motion.div>
 
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6 }}
                     >
-                      <Button
+                      <AnimatedSubmitButton
                         type="submit"
-                        className="w-full relative overflow-hidden group shadow-lg hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
-                        disabled={loading}
+                        loading={loading}
+                        className="w-full"
                       >
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/30 to-primary/0"
-                          animate={
-                            loading
-                              ? {}
-                              : {
-                                  x: ["-200%", "200%"],
-                                }
-                          }
-                          transition={{
-                            duration: 2,
-                            repeat: Number.POSITIVE_INFINITY,
-                            ease: "linear",
-                          }}
-                        />
-                        <motion.span
-                          className="relative z-10"
-                          animate={loading ? { opacity: [1, 0.5, 1] } : {}}
-                          transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
-                        >
-                          {loading ? "Authenticating..." : "Sign In"}
-                        </motion.span>
-                      </Button>
+                        {loading ? (
+                          <div className="flex items-center gap-3">
+                            <WaveLoading />
+                            <span>Authenticating...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Lock className="w-5 h-5" />
+                            <span>Login</span>
+                            <Sparkles className="w-4 h-4" />
+                          </div>
+                        )}
+                      </AnimatedSubmitButton>
                     </motion.div>
                   </form>
 
-                  {result && (
-                    <motion.div variants={bounceIn} initial="initial" animate="animate">
-                      <Alert
-                        className={`mt-4 backdrop-blur-sm ${result.success ? "border-primary/50 bg-primary/10" : "border-destructive/50 bg-destructive/10"}`}
-                      >
-                        <AlertDescription className="space-y-2">
-                          <p className="font-medium">{result.message}</p>
-                          {result.user && (
-                            <motion.div
-                              className="text-sm font-mono bg-background/50 p-3 rounded overflow-x-auto"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: 0.2 }}
-                            >
-                              <p>User ID: {result.user.id}</p>
-                              <p>Username: {result.user.username}</p>
-                              <p>Role: {result.user.role}</p>
-                            </motion.div>
-                          )}
-                          {result.vulnerability && (
-                            <motion.p
-                              className="text-warning font-medium"
-                              animate={{ opacity: [1, 0.7, 1] }}
-                              transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
-                            >
-                              ⚠️ {result.vulnerability}
-                            </motion.p>
-                          )}
-                          {result.error && (
-                            <div className="text-sm font-mono bg-background/50 p-3 rounded">
-                              <p className="text-destructive">{result.error}</p>
-                              {result.query && <p className="mt-2 text-muted-foreground">Query: {result.query}</p>}
-                            </div>
-                          )}
-                        </AlertDescription>
-                      </Alert>
-                    </motion.div>
-                  )}
+                  <AnimatedResultDisplay result={result} />
                 </CardContent>
               </Card>
             </GlassCard>

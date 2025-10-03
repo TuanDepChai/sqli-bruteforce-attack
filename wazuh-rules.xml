@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<group name="sqli-bruteforce,attacks,">
+
+  <!-- SQL Injection Detection -->
+  <rule id="100001" level="10">
+    <decoded_as>sqli-bruteforce-log</decoded_as>
+    <field name="attack_type">sql_injection</field>
+    <description>SQL Injection attempt detected</description>
+    <group>sql_injection,</group>
+  </rule>
+
+  <!-- SQL Injection with UNION SELECT -->
+  <rule id="100002" level="12">
+    <decoded_as>sqli-bruteforce-log</decoded_as>
+    <field name="query_string">UNION SELECT</field>
+    <description>SQL Injection with UNION SELECT detected</description>
+    <group>sql_injection,high_severity,</group>
+  </rule>
+
+  <!-- SQL Injection with OR 1=1 -->
+  <rule id="100003" level="11">
+    <decoded_as>sqli-bruteforce-log</decoded_as>
+    <field name="query_string">OR 1=1</field>
+    <description>SQL Injection with OR 1=1 detected</description>
+    <group>sql_injection,medium_severity,</group>
+  </rule>
+
+  <!-- Brute Force Detection -->
+  <rule id="100004" level="8">
+    <decoded_as>sqli-bruteforce-log</decoded_as>
+    <field name="attack_type">brute_force</field>
+    <description>Brute force attack attempt detected</description>
+    <group>brute_force,</group>
+  </rule>
+
+  <!-- Multiple Failed Login Attempts -->
+  <rule id="100005" level="9">
+    <if_sid>100004</if_sid>
+    <frequency>5</frequency>
+    <timeframe>300</timeframe>
+    <same_source_ip />
+    <description>Multiple brute force attempts from same IP</description>
+    <group>brute_force,multiple_attempts,</group>
+  </rule>
+
+  <!-- SQL Syntax Error -->
+  <rule id="100006" level="13">
+    <decoded_as>sqli-bruteforce-log</decoded_as>
+    <field name="login_message">SQL syntax error</field>
+    <description>SQL syntax error - Potential database exploitation</description>
+    <group>sql_injection,critical,</group>
+  </rule>
+
+  <!-- Authentication Failure -->
+  <rule id="100007" level="5">
+    <decoded_as>sqli-bruteforce-log</decoded_as>
+    <field name="status_code">401</field>
+    <description>Authentication failed</description>
+    <group>authentication_failure,</group>
+  </rule>
+
+  <!-- Successful Authentication -->
+  <rule id="100008" level="3">
+    <decoded_as>sqli-bruteforce-log</decoded_as>
+    <field name="status_code">200</field>
+    <description>Successful authentication</description>
+    <group>authentication_success,</group>
+  </rule>
+
+  <!-- Database Error -->
+  <rule id="100009" level="12">
+    <decoded_as>sqli-bruteforce-log</decoded_as>
+    <field name="status_code">500</field>
+    <description>Database error - Potential exploitation</description>
+    <group>database_error,critical,</group>
+  </rule>
+
+</group>

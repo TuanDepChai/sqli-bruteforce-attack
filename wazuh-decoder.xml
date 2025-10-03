@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decoder name="sqli-bruteforce">
+  <program_name>^sqli-bruteforce</program_name>
+</decoder>
+
+<decoder name="sqli-bruteforce-log">
+  <parent>sqli-bruteforce</parent>
+  <regex type="pcre2">^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} [+-]\d{2}:\d{2}) (\d+\.\d+\.\d+\.\d+) (\w+) (\S+) (\S+) (\d{3}) "([^"]*)" "([^"]*)" "([^"]*)" "([^"]*)" "([^"]*)" "([^"]*)" "([^"]*)" "([^"]*)" "([^"]*)" "([^"]*)"$</regex>
+  <order>timestamp, srcip, method, uri, query_string, status_code, user_agent, login_message, error_message, session_token, attack_type, sql_query, referer, response_time, payload_size, request_headers</order>
+  <fts>timestamp, srcip, method, uri, status_code, user_agent, login_message, error_message, attack_type, sql_query</fts>
+</decoder>

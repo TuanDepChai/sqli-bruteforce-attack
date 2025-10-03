@@ -33,7 +33,7 @@ export function getDatabase() {
 
       CREATE TABLE IF NOT EXISTS attack_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        timestamp DATETIME,
         ip_address TEXT,
         username_attempt TEXT,
         password_attempt TEXT,
@@ -50,7 +50,9 @@ export function getDatabase() {
         referer TEXT,
         response_time_ms INTEGER,
         payload_size INTEGER,
-        additional_data TEXT
+        additional_data TEXT,
+        status_code INTEGER,
+        server_response TEXT
       );
 
       CREATE TABLE IF NOT EXISTS sessions (
@@ -81,7 +83,7 @@ export function getDatabase() {
         description TEXT,
         ip_address TEXT,
         user_id INTEGER,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        timestamp DATETIME,
         metadata TEXT,
         FOREIGN KEY (user_id) REFERENCES users(id)
       );
