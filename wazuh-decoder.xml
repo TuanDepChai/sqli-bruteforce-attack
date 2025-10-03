@@ -1,6 +1,0 @@
-<decoder name="sqli-bruteforce-json">
-  <prematch>^{"timestamp":</prematch>
-  <plugin_decoder>JSON_Decoder</plugin_decoder>
-  <order>timestamp, ip_address, method, uri, status_code, user_agent, attack_type, success, risk_score, attack_severity</order>
-</decoder>
-

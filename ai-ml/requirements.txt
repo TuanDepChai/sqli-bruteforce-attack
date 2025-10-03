@@ -1,0 +1,28 @@
+# AI/ML Dependencies for Anomaly Detection System
+# 🛡️ Cybersecurity AI Detection Requirements
+
+# Core ML Libraries
+scikit-learn>=1.3.0
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
+
+# Data Processing
+joblib>=1.3.0
+regex>=2023.6.3
+
+# Logging and Monitoring
+python-json-logger>=2.0.0
+
+# Optional: Advanced ML Libraries
+# tensorflow>=2.13.0  # For deep learning models (optional)
+# torch>=2.0.0        # PyTorch alternative (optional)
+# xgboost>=1.7.0      # Gradient boosting (optional)
+
+# Development and Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Documentation
+sphinx>=7.0.0
+sphinx-rtd-theme>=1.3.0
