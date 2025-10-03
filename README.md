@@ -1,40 +1,49 @@
-# Vulnerable Login - Security Training Platform 🛡️
+# Vulnerable Login - Professional Security Training Platform 🛡️
 
 ⚠️ **WARNING: This application is INTENTIONALLY VULNERABLE for educational purposes only!**
 
 ## Overview
 
-Professional security training application with advanced animations, comprehensive filtering, and detailed file-based logging system. Designed for security professionals and students to practice:
-- SQL Injection attacks
-- Brute force attacks  
-- Attack detection and analysis
-- Log analysis and forensics
-- Penetration testing techniques
+Professional-grade security training application featuring advanced animations, comprehensive attack logging, and detailed forensics capabilities. Designed for security professionals, penetration testers, and students to practice:
 
-## ✨ Features
+- **SQL Injection attacks** - Multiple techniques and payloads
+- **Brute force attacks** - Dictionary, parallel, and credential stuffing
+- **Attack detection** - Real-time monitoring and analysis
+- **Log analysis** - Comprehensive forensics and pattern recognition
+- **Penetration testing** - Professional attack scripts and methodologies
 
-### 🎨 Professional Effects & Animations
-- **Particle background** with connected nodes animation
-- **Smooth transitions** with Framer Motion
-- **Animated statistics** counters
-- **Hover effects** on all interactive elements
-- **Loading states** with pulse animations
-- **Gradient animations** in backgrounds
-- **Staggered reveals** for content
-- **Micro-interactions** throughout the UI
+## ✨ Premium Features
 
-### 🔍 Advanced Filtering System
-- **Text search** across username, IP, SQL queries, and errors
-- **Attack type filter** (SQL Injection, Brute Force, Normal Login, Credential Stuffing)
-- **Status filter** (Success/Failed)
-- **IP address filter** with partial matching
-- **Date range filter** (From/To dates)
+### 🎨 Professional UI/UX & Animations
+- **Particle background** with dynamic connected nodes
+- **Animated gradients** with smooth color transitions
+- **Glass morphism** effects with backdrop blur
+- **3D transforms** and perspective effects
+- **Micro-interactions** on all interactive elements
+- **Smooth page transitions** with Framer Motion
+- **Animated statistics** with counting effects
+- **Hover effects** with lift, glow, and scale
+- **Loading states** with shimmer and pulse
+- **Staggered reveals** for content sections
+- **Floating animations** for icons and badges
+- **Gradient text** with animated shifts
+- **Border glow** effects on focus
+- **Ripple effects** on clicks
+
+### 🔍 Advanced Filtering & Search
+- **Full-text search** across all log fields
+- **Attack type filtering** (SQL Injection, Brute Force, Normal Login, Credential Stuffing)
+- **Status filtering** (Success/Failed attempts)
+- **IP address filtering** with partial matching
+- **Date range filtering** (From/To dates with calendar picker)
 - **Real-time filtering** with instant results
 - **Filter summary** showing matched vs total logs
 - **Clear all filters** with one click
-- **Export filtered results** to JSON
+- **Export filtered results** to JSON with timestamp
+- **Persistent filter state** during session
 
-### 📁 File-Based Logging System
+### 📁 Professional Logging System
+
 All attacks are logged to multiple files with **complete field information**:
 
 **Log Files Created:**
@@ -46,7 +55,7 @@ All attacks are logged to multiple files with **complete field information**:
 - `logs/security-events.log` - Security events
 - `logs/security-YYYY-MM-DD.log` - Daily security events
 
-**Log Format** (Clean and Complete):
+**Log Format** (Clean and Professional):
 \`\`\`
 ================================================================================
 [2025-01-15T10:30:45.123Z] CRITICAL - ATTACK_ATTEMPT
@@ -74,28 +83,88 @@ ADDITIONAL DATA          : N/A
 
 **Log Features:**
 - ✅ **All fields included** - Every database field is written to logs
-- ✅ **Clean formatting** - Easy to read with clear labels
-- ✅ **Automatic rotation** - Files rotate at 10MB
+- ✅ **Clean formatting** - Easy to read with clear labels and separators
+- ✅ **Automatic rotation** - Files rotate at 10MB with timestamps
 - ✅ **Multiple destinations** - Logs written to multiple files for easy filtering
 - ✅ **Timestamped** - ISO 8601 format with milliseconds
 - ✅ **Severity levels** - CRITICAL, ERROR, WARNING, INFO
+- ✅ **Structured data** - JSON-compatible for parsing
+- ✅ **Performance metrics** - Response time and payload size tracking
 
 ### 🗄️ Professional Database Structure
-- **Detailed user profiles** with 18+ fields
-- **Session tracking** with activity monitoring
-- **Failed login attempts** tracking
-- **Security events** logging
-- **Comprehensive metadata** (geolocation, device fingerprinting, etc.)
-- **Performance metrics** (response time, payload size)
-- **Database indexes** for optimized queries
-- **Foreign key relationships** for data integrity
+
+**Users Table** (18 comprehensive fields):
+\`\`\`sql
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL UNIQUE,
+  password TEXT NOT NULL,
+  email TEXT,
+  full_name TEXT,
+  phone TEXT,
+  department TEXT,
+  position TEXT,
+  role TEXT DEFAULT 'user',
+  account_status TEXT DEFAULT 'active',
+  last_login DATETIME,
+  failed_login_attempts INTEGER DEFAULT 0,
+  account_locked BOOLEAN DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  password_changed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  two_factor_enabled BOOLEAN DEFAULT 0,
+  security_question TEXT,
+  security_answer TEXT
+);
+\`\`\`
+
+**Attack Logs Table** (18 detailed fields):
+\`\`\`sql
+CREATE TABLE attack_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+  ip_address TEXT,
+  username_attempt TEXT,
+  password_attempt TEXT,
+  attack_type TEXT,
+  sql_query TEXT,
+  success BOOLEAN,
+  error_message TEXT,
+  user_agent TEXT,
+  request_method TEXT,
+  request_headers TEXT,
+  geo_location TEXT,
+  device_fingerprint TEXT,
+  session_id TEXT,
+  referer TEXT,
+  response_time_ms INTEGER,
+  payload_size INTEGER,
+  additional_data TEXT
+);
+\`\`\`
 
 ### 🎯 Intentional Vulnerabilities
-1. **SQL Injection** - Raw SQL queries, no parameterization
-2. **Brute Force** - No rate limiting or account lockout
-3. **Comprehensive Logging** - All attempts logged with full details
 
-## Installation & Setup (Ubuntu)
+1. **SQL Injection** - Raw SQL queries without parameterization
+2. **No Rate Limiting** - Unlimited login attempts allowed
+3. **No Account Lockout** - Failed attempts don't lock accounts
+4. **No CAPTCHA** - Automated attacks possible
+5. **Comprehensive Logging** - All attempts logged with full details
+
+### 📚 Professional Attack Scripts
+
+Located in `scripts/attack-examples.ts`:
+
+- **Basic SQL Injection** - Authentication bypass techniques
+- **UNION-based Injection** - Data extraction methods
+- **Time-based Blind Injection** - Detection using delays
+- **Dictionary Brute Force** - Common password testing
+- **Parallel Brute Force** - Concurrent attack execution
+- **Credential Stuffing** - Leaked credential testing
+- **Password Mutations** - L33t speak and variations
+- **Full Attack Suite** - Comprehensive testing framework
+
+## Installation & Setup (Ubuntu/Linux)
 
 ### Prerequisites
 
@@ -135,7 +204,7 @@ ls -la
 # You should see:
 # - vulnerable.db (created on first run)
 # - logs/ (created on first run)
-# - app/, components/, lib/, etc.
+# - app/, components/, lib/, scripts/, styles/, etc.
 \`\`\`
 
 ### Running the Application
@@ -212,40 +281,53 @@ Username: ' OR 1=1--
 Password: anything
 \`\`\`
 
-#### 4. Union-based Injection
+#### 4. UNION-based Injection
 \`\`\`
-Username: admin' UNION SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13--
+Username: admin' UNION SELECT 1,'admin','password','admin@test.com','admin','active'--
 Password: anything
+\`\`\`
+
+#### 5. Stacked Queries
+\`\`\`
+Username: admin'; DROP TABLE users--
+Password: (leave empty)
+\`\`\`
+
+#### 6. Time-based Blind Injection
+\`\`\`
+Username: admin' AND SLEEP(5)--
+Password: (leave empty)
 \`\`\`
 
 ### Using the Admin Dashboard
 
 1. **Navigate to** `http://localhost:3000/admin`
 
-2. **View Statistics** - Animated counters showing:
-   - Total attack attempts
-   - SQL injection count
-   - Brute force attempts
-   - Successful logins
+2. **View Animated Statistics**:
+   - Total attack attempts (with counter animation)
+   - SQL injection count (warning color)
+   - Brute force attempts (destructive color)
+   - Successful logins (primary color)
 
-3. **Use Filters**:
+3. **Use Advanced Filters**:
    - Click "Filters" button to open filter panel
    - Search by username, IP, SQL query, or error message
    - Filter by attack type (SQL Injection, Brute Force, etc.)
    - Filter by status (Success/Failed)
-   - Filter by IP address
-   - Filter by date range
+   - Filter by IP address (partial matching supported)
+   - Filter by date range (calendar picker)
    - See real-time results as you type
+   - View filter summary (X of Y logs)
    - Clear all filters with one click
 
 4. **Export Logs**:
    - Click "Export" button
    - Downloads filtered logs as JSON
-   - Filename includes timestamp
+   - Filename includes timestamp: `attack-logs-2025-01-15T10-30-45.json`
 
 5. **Refresh Data**:
    - Click "Refresh" button to reload logs
-   - Animated loading indicator
+   - Animated loading indicator with rotation
 
 ### Viewing Log Files
 
@@ -266,6 +348,9 @@ tail -f logs/critical-attacks.log
 
 # Watch security events
 tail -f logs/security-events.log
+
+# Watch multiple files simultaneously
+tail -f logs/*.log
 \`\`\`
 
 #### Log Analysis Commands
@@ -297,6 +382,13 @@ grep "ATTACK TYPE" logs/attacks.log | sort | uniq -c
 
 # Find all critical events
 grep "CRITICAL" logs/*.log
+
+# Get attack statistics
+echo "Total attacks: $(grep -c 'ATTACK_ATTEMPT' logs/attacks.log)"
+echo "Successful: $(grep -c 'SUCCESS.*: YES' logs/attacks.log)"
+echo "Failed: $(grep -c 'SUCCESS.*: NO' logs/attacks.log)"
+echo "SQL Injection: $(grep -c 'sql_injection' logs/attacks.log)"
+echo "Brute Force: $(grep -c 'brute_force' logs/attacks.log)"
 \`\`\`
 
 #### Log Rotation
@@ -311,9 +403,31 @@ logs/attacks-2025-01-15T10-30-45-123Z.log
 logs/attacks-2025-01-15T14-22-10-456Z.log
 \`\`\`
 
-### Brute Force Testing
+### Professional Attack Scripts
 
-#### Python Script Example
+#### Using the TypeScript Attack Suite
+
+\`\`\`typescript
+import { 
+  basicSQLInjection,
+  unionBasedSQLInjection,
+  timeBasedSQLInjection,
+  dictionaryBruteForce,
+  parallelBruteForce,
+  credentialStuffing,
+  runFullAttackSuite
+} from './scripts/attack-examples'
+
+// Run individual attacks
+await basicSQLInjection('http://localhost:3000')
+await unionBasedSQLInjection('http://localhost:3000')
+await dictionaryBruteForce('http://localhost:3000', 'admin')
+
+// Run full attack suite
+await runFullAttackSuite('http://localhost:3000')
+\`\`\`
+
+#### Python Brute Force Script
 
 \`\`\`python
 #!/usr/bin/env python3
@@ -365,116 +479,6 @@ for cred in successful:
     print(f"  - {cred}")
 \`\`\`
 
-#### Node.js Script Example
-
-\`\`\`javascript
-#!/usr/bin/env node
-const fetch = require('node-fetch');
-
-const url = 'http://localhost:3000/api/login';
-const usernames = ['admin', 'user', 'john', 'sarah', 'mike', 'emma'];
-const passwords = ['password', '123456', 'admin123', 'password123', 'letmein'];
-
-async function bruteForce() {
-  console.log(`[${new Date().toISOString()}] Starting brute force attack...`);
-  console.log(`Testing ${usernames.length} usernames with ${passwords.length} passwords`);
-  console.log(`Total attempts: ${usernames.length * passwords.length}`);
-  console.log('-'.repeat(60));
-
-  const successful = [];
-  const failed = [];
-
-  for (const username of usernames) {
-    for (const password of passwords) {
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-
-        const data = await response.json();
-        const status = data.success ? '✓ SUCCESS' : '✗ FAILED';
-
-        console.log(`${status} | ${username.padEnd(10)} : ${password.padEnd(15)} | ${response.status}`);
-
-        if (data.success) {
-          successful.push(`${username}:${password}`);
-        } else {
-          failed.push(`${username}:${password}`);
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-      } catch (error) {
-        console.log(`ERROR | ${username.padEnd(10)} : ${password.padEnd(15)} | ${error.message}`);
-      }
-    }
-  }
-
-  console.log('-'.repeat(60));
-  console.log(`\nResults:`);
-  console.log(`Successful: ${successful.length}`);
-  console.log(`Failed: ${failed.length}`);
-  console.log(`\nSuccessful credentials:`);
-  successful.forEach(cred => console.log(`  - ${cred}`));
-}
-
-bruteForce();
-\`\`\`
-
-## Database Structure
-
-### Users Table (18 fields)
-\`\`\`sql
-CREATE TABLE users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT NOT NULL UNIQUE,
-  password TEXT NOT NULL,
-  email TEXT,
-  full_name TEXT,
-  phone TEXT,
-  department TEXT,
-  position TEXT,
-  role TEXT DEFAULT 'user',
-  account_status TEXT DEFAULT 'active',
-  last_login DATETIME,
-  failed_login_attempts INTEGER DEFAULT 0,
-  account_locked BOOLEAN DEFAULT 0,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  password_changed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  two_factor_enabled BOOLEAN DEFAULT 0,
-  security_question TEXT,
-  security_answer TEXT
-);
-\`\`\`
-
-### Attack Logs Table (18 fields)
-\`\`\`sql
-CREATE TABLE attack_logs (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-  ip_address TEXT,
-  username_attempt TEXT,
-  password_attempt TEXT,
-  attack_type TEXT,
-  sql_query TEXT,
-  success BOOLEAN,
-  error_message TEXT,
-  user_agent TEXT,
-  request_method TEXT,
-  request_headers TEXT,
-  geo_location TEXT,
-  device_fingerprint TEXT,
-  session_id TEXT,
-  referer TEXT,
-  response_time_ms INTEGER,
-  payload_size INTEGER,
-  additional_data TEXT
-);
-\`\`\`
-
 ## Troubleshooting
 
 ### Database Issues
@@ -492,6 +496,9 @@ sqlite3 vulnerable.db ".schema"
 
 # Count records
 sqlite3 vulnerable.db "SELECT COUNT(*) FROM attack_logs;"
+
+# View all users
+sqlite3 vulnerable.db "SELECT username, role FROM users;"
 \`\`\`
 
 ### Log File Issues
@@ -509,6 +516,9 @@ rm logs/*.log
 
 # Check disk space
 df -h
+
+# Check if logs are being written
+watch -n 1 'ls -lh logs/'
 \`\`\`
 
 ### Port Issues
@@ -550,11 +560,12 @@ du -sh logs/*
 
 # Archive old logs
 tar -czf logs-backup-$(date +%Y%m%d).tar.gz logs/*.log
+rm logs/attacks-2025-*.log
 \`\`\`
 
 ## Security Best Practices (NOT Implemented)
 
-To secure a real application:
+To secure a real application, implement:
 
 1. ✅ **Parameterized queries** - Use prepared statements
 2. ✅ **Password hashing** - bcrypt, argon2, or scrypt
@@ -563,11 +574,11 @@ To secure a real application:
 5. ✅ **CAPTCHA** - After 3-5 failed attempts
 6. ✅ **Input validation** - Whitelist allowed characters
 7. ✅ **HTTPS only** - Encrypt all traffic
-8. ✅ **Session management** - Secure tokens
+8. ✅ **Session management** - Secure tokens with expiration
 9. ✅ **MFA** - Multi-factor authentication
-10. ✅ **Security headers** - CSP, HSTS, etc.
+10. ✅ **Security headers** - CSP, HSTS, X-Frame-Options
 11. ✅ **Error handling** - Don't expose sensitive info
-12. ✅ **Logging** - Secure log storage
+12. ✅ **Logging** - Secure log storage and rotation
 13. ✅ **Regular audits** - Penetration testing
 14. ✅ **Principle of least privilege** - Minimal permissions
 
@@ -598,6 +609,8 @@ This application is for **EDUCATIONAL PURPOSES ONLY**.
 - [OWASP SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)
 - [PortSwigger Academy](https://portswigger.net/web-security)
 - [SANS Institute](https://www.sans.org/)
+- [HackerOne](https://www.hackerone.com/)
+- [Bugcrowd University](https://www.bugcrowd.com/hackers/bugcrowd-university/)
 
 ## License
 
@@ -605,4 +618,4 @@ MIT License - Educational use only
 
 ---
 
-**Remember:** Use this knowledge ethically and legally. With great power comes great responsibility.
+**Remember:** Use this knowledge ethically and legally. With great power comes great responsibility. 🛡️

