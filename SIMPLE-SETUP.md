@@ -6,11 +6,11 @@ Simplified setup without Wazuh decoder/rules. Just configure log monitoring and 
 
 ## 📊 JSON Log Format
 
-The application generates simplified JSON logs with only essential fields:
+The application generates simplified JSON logs with essential fields including SQL queries:
 
 ```json
 {
-  "timestamp": "2025-10-03 15:48:20.513 +07:00",
+  "timestamp": "2025-10-03 15:52:45.139 +07:00",
   "method": "POST",
   "url": "/api/login?username=admin&password=wrongpass",
   "username": "admin",
@@ -19,7 +19,8 @@ The application generates simplified JSON logs with only essential fields:
   "success": false,
   "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
   "referer": "http://192.168.205.100:3000/",
-  "status_code": 401
+  "status_code": 401,
+  "query": "SELECT * FROM users WHERE username = 'admin' AND password = 'wrongpass'"
 }
 ```
 
@@ -74,7 +75,7 @@ tail -f /home/modsec/Desktop/sqli-bruteforce-attack/logs/attacks.log
 sudo tail -f /var/ossec/logs/archives/archives.json | grep "attacks.log" | jq '.'
 
 # Extract specific fields
-sudo tail -f /var/ossec/logs/archives/archives.json | grep "attacks.log" | jq '.username, .success, .status_code'
+sudo tail -f /var/ossec/logs/archives/archives.json | grep "attacks.log" | jq '.username, .success, .status_code, .query'
 ```
 
 ## 🤖 AI/ML Training
@@ -102,20 +103,23 @@ with open('/var/ossec/logs/archives/archives.json', 'r') as f:
 # Convert to DataFrame
 df = pd.DataFrame(logs)
 
-# Ready for ML training with essential fields!
-X = df[['method', 'status_code', 'success']]
+# Ready for ML training with essential fields including SQL queries!
+X = df[['method', 'status_code', 'success', 'query']]
 y = df['success']  # Binary classification
 ```
 
 ### Feature Engineering
 
 ```python
-# Extract ML features from simplified JSON
+# Extract ML features from simplified JSON including SQL query analysis
 features = {
     'method_post': (df['method'] == 'POST').astype(int),
     'status_code': df['status_code'],
     'success': df['success'].astype(int),
     'has_sql_pattern': df['username'].str.contains('OR|UNION|--|\'|"', na=False).astype(int),
+    'query_has_or': df['query'].str.contains('OR', na=False).astype(int),
+    'query_has_union': df['query'].str.contains('UNION', na=False).astype(int),
+    'query_has_comments': df['query'].str.contains('--|/\*', na=False).astype(int),
     'suspicious_ua': df['user_agent'].str.contains('curl|wget|bot', na=False).astype(int),
     'has_referer': df['referer'].notna().astype(int),
     'hour_of_day': pd.to_datetime(df['timestamp']).dt.hour
@@ -160,9 +164,10 @@ sudo tail -f /var/ossec/logs/archives/archives.json | grep "attacks.log" | jq '.
 - ✅ **Easy troubleshooting** - Fewer moving parts
 
 ### AI/ML Ready:
-- ✅ **Essential fields only** - Clean, minimal JSON structure
+- ✅ **Essential fields only** - Clean, minimal JSON structure (10 fields)
 - ✅ **Binary classification** - Success/failure flags
-- ✅ **Text analysis** - Usernames, passwords, user agents
+- ✅ **Text analysis** - Usernames, passwords, user agents, SQL queries
+- ✅ **SQL query analysis** - Pattern recognition for injection attacks
 - ✅ **Time series data** - Timestamps for temporal analysis
 
 ### Development:

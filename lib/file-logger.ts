@@ -67,7 +67,8 @@ function formatLogEntry(entry: LogEntry): string {
     success: success === 'YES' || success === true,
     user_agent: data.user_agent || 'Unknown',
     referer: data.referer || null,
-    status_code: data.status_code || 200
+    status_code: data.status_code || 200,
+    query: data.sql_query || null
   }
   
   // Return JSON string with newline for file writing
