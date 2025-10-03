@@ -6,29 +6,20 @@ Simplified setup without Wazuh decoder/rules. Just configure log monitoring and 
 
 ## 📊 JSON Log Format
 
-The application generates structured JSON logs:
+The application generates simplified JSON logs with only essential fields:
 
 ```json
 {
-  "timestamp": "2025-10-03 14:41:47.849 +07:00",
-  "ip_address": "192.168.205.1",
+  "timestamp": "2025-10-03 15:48:20.513 +07:00",
   "method": "POST",
-  "uri": "/api/login",
-  "full_uri": "/api/login?username=admin&password=wrongpass",
-  "status_code": 401,
-  "user_agent": "Mozilla/5.0...",
-  "username_attempt": "admin",
-  "password_attempt": "wrongpass",
-  "login_result": "Authentication failed - Invalid credentials",
-  "attack_type": "normal_login",
-  "sql_query": "SELECT * FROM users WHERE username = 'admin' AND password = 'wrongpass'",
-  "response_time_ms": 45,
-  "payload_size_bytes": 42,
+  "url": "/api/login?username=admin&password=wrongpass",
+  "username": "admin",
+  "password": "wrongpass",
+  "ip": "192.168.205.1",
   "success": false,
-  "attack_severity": "low",
-  "risk_score": 20,
-  "timestamp_unix": 1759477307851,
-  "log_type": "attack_detection"
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+  "referer": "http://192.168.205.100:3000/",
+  "status_code": 401
 }
 ```
 
@@ -83,7 +74,7 @@ tail -f /home/modsec/Desktop/sqli-bruteforce-attack/logs/attacks.log
 sudo tail -f /var/ossec/logs/archives/archives.json | grep "attacks.log" | jq '.'
 
 # Extract specific fields
-sudo tail -f /var/ossec/logs/archives/archives.json | grep "attacks.log" | jq '.attack_type, .risk_score, .success'
+sudo tail -f /var/ossec/logs/archives/archives.json | grep "attacks.log" | jq '.username, .success, .status_code'
 ```
 
 ## 🤖 AI/ML Training
@@ -111,24 +102,23 @@ with open('/var/ossec/logs/archives/archives.json', 'r') as f:
 # Convert to DataFrame
 df = pd.DataFrame(logs)
 
-# Ready for ML training!
-X = df[['risk_score', 'response_time_ms', 'payload_size_bytes', 'success']]
-y = df['attack_type']
+# Ready for ML training with essential fields!
+X = df[['method', 'status_code', 'success']]
+y = df['success']  # Binary classification
 ```
 
 ### Feature Engineering
 
 ```python
-# Extract ML features
+# Extract ML features from simplified JSON
 features = {
-    'risk_score': df['risk_score'],
-    'response_time_ms': df['response_time_ms'],
-    'payload_size_bytes': df['payload_size_bytes'],
-    'is_successful': df['success'].astype(int),
-    'has_sql_pattern': df['sql_query'].str.contains('OR|UNION|--', na=False).astype(int),
+    'method_post': (df['method'] == 'POST').astype(int),
+    'status_code': df['status_code'],
+    'success': df['success'].astype(int),
+    'has_sql_pattern': df['username'].str.contains('OR|UNION|--|\'|"', na=False).astype(int),
     'suspicious_ua': df['user_agent'].str.contains('curl|wget|bot', na=False).astype(int),
-    'hour_of_day': pd.to_datetime(df['timestamp_unix'], unit='ms').dt.hour,
-    'attack_severity_score': df['attack_severity'].map({'low': 1, 'medium': 2, 'high': 3, 'critical': 4})
+    'has_referer': df['referer'].notna().astype(int),
+    'hour_of_day': pd.to_datetime(df['timestamp']).dt.hour
 }
 ```
 
@@ -170,10 +160,10 @@ sudo tail -f /var/ossec/logs/archives/archives.json | grep "attacks.log" | jq '.
 - ✅ **Easy troubleshooting** - Fewer moving parts
 
 ### AI/ML Ready:
-- ✅ **Structured JSON** - Direct pandas DataFrame conversion
-- ✅ **Built-in features** - Risk scores, severity levels
-- ✅ **Time series data** - Unix timestamps
-- ✅ **Text analysis** - SQL queries, user agents
+- ✅ **Essential fields only** - Clean, minimal JSON structure
+- ✅ **Binary classification** - Success/failure flags
+- ✅ **Text analysis** - Usernames, passwords, user agents
+- ✅ **Time series data** - Timestamps for temporal analysis
 
 ### Development:
 - ✅ **Easy debugging** - Human-readable JSON

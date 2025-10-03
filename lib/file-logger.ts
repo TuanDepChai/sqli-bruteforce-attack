@@ -56,35 +56,18 @@ function formatLogEntry(entry: LogEntry): string {
     }
   }
   
-  // Create structured JSON log entry
+  // Create simplified JSON log entry with only essential fields
   const logEntry = {
     timestamp: timestamp,
-    ip_address: ip,
     method: data.request_method || 'POST',
-    uri: data.uri || '/api/login',
-    full_uri: `${data.uri || '/api/login'}${queryString ? '?' + queryString : ''}`,
-    status_code: data.status_code || 200,
-    user_agent: data.user_agent || 'Unknown',
-    username_attempt: username,
-    password_attempt: password,
-    login_result: loginMessage,
-    error_message: data.error_message || null,
-    session_token: data.session_id || `SESS_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    attack_type: attackType,
-    sql_query: data.sql_query || null,
-    referer: data.referer || null,
-    response_time_ms: data.response_time_ms || 0,
-    payload_size_bytes: data.payload_size || 0,
-    request_headers: data.request_headers || null,
+    url: `${data.uri || '/api/login'}${queryString ? '?' + queryString : ''}`,
+    username: username,
+    password: password,
+    ip: ip,
     success: success === 'YES' || success === true,
-    geo_location: data.geo_location || null,
-    device_fingerprint: data.device_fingerprint || null,
-    additional_data: data.additional_data || null,
-    // AI/ML specific fields
-    attack_severity: getAttackSeverity(attackType, success),
-    risk_score: calculateRiskScore(data),
-    timestamp_unix: Date.now(),
-    log_type: 'attack_detection'
+    user_agent: data.user_agent || 'Unknown',
+    referer: data.referer || null,
+    status_code: data.status_code || 200
   }
   
   // Return JSON string with newline for file writing
