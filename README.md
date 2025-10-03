@@ -103,7 +103,17 @@ echo "Brute Force: $(grep -c 'brute_force' logs/attacks.log)"
 
 ## 🤖 AI/ML Log Collection
 
-### Local Deployment
+### Ubuntu Server Installation
+```bash
+# Quick one-command installation
+curl -sSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/scripts/quick-install.sh | bash
+
+# Or detailed installation
+chmod +x scripts/ubuntu-install.sh
+./scripts/ubuntu-install.sh
+```
+
+### Local Development
 ```bash
 # 1. Clone and setup
 git clone https://github.com/TuanDepChai/sqli-bruteforce-attack.git
@@ -121,6 +131,7 @@ npm run dev
 ```
 
 ### Features
+- **Ubuntu Server**: One-command installation with systemd service
 - **Local Development**: Easy setup and testing
 - **Log Generation**: Comprehensive attack logs for AI analysis
 - **Wazuh Integration**: Ready for Wazuh agent log collection

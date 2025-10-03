@@ -45,7 +45,7 @@ Add this configuration inside `<ossec_config>` section:
 <!-- SQLi BruteForce Attack Logs -->
 <localfile>
   <log_format>syslog</log_format>
-  <location>/path/to/your/project/logs/attacks.log</location>
+  <location>/home/modsec/Desktop/sqli-bruteforce-attack/logs/attacks.log</location>
 </localfile>
 ```
 
