@@ -33,11 +33,18 @@ function formatLogEntry(entry: LogEntry): string {
   return lines.join("\n")
 }
 
+// Helper function to get Vietnam timezone timestamp
+function getVietnamTimestamp() {
+  const now = new Date()
+  const vietnamTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }))
+  return vietnamTime.toISOString()
+}
+
 function rotateLogFile(filePath: string) {
   if (fs.existsSync(filePath)) {
     const stats = fs.statSync(filePath)
     if (stats.size > MAX_LOG_SIZE) {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
+      const timestamp = getVietnamTimestamp().replace(/[:.]/g, "-")
       const rotatedPath = filePath.replace(".log", `-${timestamp}.log`)
       fs.renameSync(filePath, rotatedPath)
     }

@@ -35,6 +35,66 @@ export async function POST(request: NextRequest) {
   ]
 
   const containsSqlInjection = sqlInjectionPatterns.some((pattern) => pattern.test(username) || pattern.test(password))
+  
+  // Detect brute force based on behavioral patterns
+  const currentTime = Date.now()
+  const timeWindow = 5 * 60 * 1000 // 5 minutes window
+  
+  // Check for rapid successive requests from same IP
+  const recentAttempts = db.prepare(`
+    SELECT COUNT(*) as count, 
+           COUNT(DISTINCT username_attempt) as unique_usernames,
+           COUNT(DISTINCT password_attempt) as unique_passwords,
+           MIN(timestamp) as first_attempt,
+           MAX(timestamp) as last_attempt
+    FROM attack_logs 
+    WHERE ip_address = ? 
+    AND datetime(timestamp) > datetime('now', '-5 minutes')
+  `).get(ip)
+  
+  const rapidRequests = recentAttempts.count > 10 // More than 10 attempts in 5 minutes
+  const multipleUsernames = recentAttempts.unique_usernames > 5 // Trying many usernames
+  const multiplePasswords = recentAttempts.unique_passwords > 10 // Trying many passwords
+  
+  // Check for repeated failed attempts from same IP
+  const failedAttempts = db.prepare(`
+    SELECT COUNT(*) as count
+    FROM attack_logs 
+    WHERE ip_address = ? 
+    AND success = 0
+    AND datetime(timestamp) > datetime('now', '-5 minutes')
+  `).get(ip).count
+  
+  const highFailureRate = failedAttempts > 8 // More than 8 failed attempts in 5 minutes
+  
+  // Check for dictionary attack patterns (same username, different passwords)
+  const sameUsernameAttempts = db.prepare(`
+    SELECT COUNT(DISTINCT password_attempt) as password_count
+    FROM attack_logs 
+    WHERE ip_address = ? 
+    AND username_attempt = ?
+    AND datetime(timestamp) > datetime('now', '-5 minutes')
+  `).get(ip, username)
+  
+  const dictionaryAttack = sameUsernameAttempts.password_count > 5 // Same username, many passwords
+  
+  // Check for systematic password patterns
+  const isCommonPassword = [
+    'password', '123456', '12345678', 'qwerty', 'abc123', 'admin',
+    'admin123', 'root', 'toor', 'pass', 'test', 'guest'
+  ].includes(password.toLowerCase())
+  
+  const isShortPassword = password.length <= 6
+  const isNumericPassword = /^\d+$/.test(password)
+  const isCommonPattern = isCommonPassword || isShortPassword || isNumericPassword
+  
+  // Brute force detection based on behavioral characteristics
+  const hasBruteForcePatterns = rapidRequests || 
+                               multipleUsernames || 
+                               multiplePasswords || 
+                               highFailureRate || 
+                               dictionaryAttack || 
+                               isCommonPattern
 
   // VULNERABLE SQL QUERY - Intentionally using string concatenation
   const vulnerableQuery = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`
@@ -47,11 +107,19 @@ export async function POST(request: NextRequest) {
     const responseTime = Date.now() - startTime
     const payloadSize = JSON.stringify({ username, password }).length
 
+    // Determine attack type based on patterns detected
+    let attackType = "normal_login"
+    if (containsSqlInjection) {
+      attackType = "sql_injection"
+    } else if (hasBruteForcePatterns) {
+      attackType = "brute_force"
+    }
+
     logAttack({
       ip_address: ip,
       username_attempt: username,
       password_attempt: password,
-      attack_type: containsSqlInjection ? "sql_injection" : "normal_login",
+      attack_type: attackType,
       sql_query: vulnerableQuery,
       success: !!user,
       user_agent: userAgent,
@@ -64,7 +132,20 @@ export async function POST(request: NextRequest) {
         detectedPatterns: sqlInjectionPatterns
           .filter((p) => p.test(username) || p.test(password))
           .map((p) => p.toString()),
-        timestamp: new Date().toISOString(),
+        bruteForceIndicators: {
+          rapidRequests,
+          multipleUsernames,
+          multiplePasswords,
+          highFailureRate,
+          dictionaryAttack,
+          isCommonPattern,
+          recentAttemptsCount: recentAttempts.count,
+          uniqueUsernames: recentAttempts.unique_usernames,
+          uniquePasswords: recentAttempts.unique_passwords,
+          failedAttemptsCount: failedAttempts,
+          hasBruteForcePatterns
+        },
+        timestamp: new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }),
       }),
     })
 
@@ -78,7 +159,8 @@ export async function POST(request: NextRequest) {
           email: (user as any).email,
           role: (user as any).role,
         },
-        vulnerability: containsSqlInjection ? "SQL Injection detected and exploited!" : null,
+        vulnerability: containsSqlInjection ? "SQL Injection detected and exploited!" : 
+                       hasBruteForcePatterns ? "Brute force attack pattern detected!" : null,
       })
     } else {
       return NextResponse.json(

@@ -21,21 +21,30 @@ export interface AttackLog {
   additional_data?: string
 }
 
+// Helper function to get Vietnam timezone timestamp
+function getVietnamTimestamp() {
+  const now = new Date()
+  const vietnamTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }))
+  return vietnamTime.toISOString()
+}
+
 export function logAttack(log: AttackLog) {
   const startTime = Date.now()
   const db = getDatabase()
+  const vietnamTimestamp = getVietnamTimestamp()
 
   const stmt = db.prepare(`
     INSERT INTO attack_logs (
-      ip_address, username_attempt, password_attempt, 
+      timestamp, ip_address, username_attempt, password_attempt, 
       attack_type, sql_query, success, error_message, 
       user_agent, request_method, request_headers,
       geo_location, device_fingerprint, session_id,
       referer, response_time_ms, payload_size, additional_data
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   const result = stmt.run(
+    vietnamTimestamp,
     log.ip_address || "unknown",
     log.username_attempt,
     log.password_attempt,
@@ -57,13 +66,13 @@ export function logAttack(log: AttackLog) {
 
   const logWithId = {
     id: result.lastInsertRowid,
-    timestamp: new Date().toISOString(),
+    timestamp: vietnamTimestamp,
     ...log,
   }
   logAttackToFile(logWithId)
 
   console.log("[ATTACK LOG]", {
-    timestamp: new Date().toISOString(),
+    timestamp: vietnamTimestamp,
     severity: log.success ? "HIGH" : "MEDIUM",
     ...log,
   })
@@ -120,10 +129,12 @@ export function logSecurityEvent(event: {
   metadata?: string
 }) {
   const db = getDatabase()
+  const vietnamTimestamp = getVietnamTimestamp()
+  
   const stmt = db.prepare(`
     INSERT INTO security_events (
-      event_type, severity, description, ip_address, user_id, metadata
-    ) VALUES (?, ?, ?, ?, ?, ?)
+      event_type, severity, description, ip_address, user_id, metadata, timestamp
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
   `)
 
   stmt.run(
@@ -133,11 +144,12 @@ export function logSecurityEvent(event: {
     event.ip_address || null,
     event.user_id || null,
     event.metadata || null,
+    vietnamTimestamp,
   )
 
   logSecurityEventToFile({
     ...event,
-    timestamp: new Date().toISOString(),
+    timestamp: vietnamTimestamp,
   })
 }
 
