@@ -17,14 +17,14 @@ interface LogEntry {
 }
 
 function formatLogEntry(entry: LogEntry): string {
-  // Wazuh SIEM compatible format
+  // Wazuh SIEM optimized format with clear field separators
   const timestamp = getWazuhTimestamp()
   const data = entry.data
   
-  // Extract key information
+  // Extract key information with fallbacks
   const ip = data.ip_address || '127.0.0.1'
   const method = data.request_method || 'POST'
-  const uri = '/api/login'
+  const uri = data.uri || '/api/login'
   const statusCode = data.status_code || 200
   const userAgent = data.user_agent || 'Unknown'
   const username = data.username_attempt || 'N/A'
@@ -33,8 +33,12 @@ function formatLogEntry(entry: LogEntry): string {
   const success = data.success
   const errorMessage = data.error_message || ''
   const sqlQuery = data.sql_query || ''
+  const responseTime = data.response_time_ms || 0
+  const payloadSize = data.payload_size || 0
+  const referer = data.referer || 'N/A'
+  const sessionToken = data.session_id || `SESS_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   
-  // Build query string with payload
+  // Build query string with payload for URI
   let queryString = ''
   if (username !== 'N/A') {
     queryString += `username=${encodeURIComponent(username)}`
@@ -43,25 +47,30 @@ function formatLogEntry(entry: LogEntry): string {
     queryString += `&password=${encodeURIComponent(password)}`
   }
   
-  // Login fail message
-  let loginFailMessage = ''
-  if (!success) {
-    if (attackType === 'sql_injection') {
-      loginFailMessage = 'SQL syntax error - Malicious payload detected'
-    } else if (attackType === 'brute_force') {
-      loginFailMessage = 'Authentication failed - Brute force attempt'
-    } else {
-      loginFailMessage = 'Authentication failed - Invalid credentials'
-    }
+  // Login result message
+  let loginMessage = ''
+  if (success === 'YES' || success === true) {
+    loginMessage = 'Authentication successful'
   } else {
-    loginFailMessage = 'Authentication successful'
+    if (attackType === 'sql_injection') {
+      loginMessage = 'SQL syntax error - Malicious payload detected'
+    } else if (attackType === 'brute_force') {
+      loginMessage = 'Authentication failed - Brute force attempt'
+    } else {
+      loginMessage = 'Authentication failed - Invalid credentials'
+    }
   }
   
-  // PHP token equivalent (session-like identifier)
-  const sessionToken = `SESS_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  // Clean and escape values for better parsing
+  const cleanUserAgent = userAgent.replace(/"/g, "'")
+  const cleanLoginMessage = loginMessage.replace(/"/g, "'")
+  const cleanErrorMessage = errorMessage.replace(/"/g, "'")
+  const cleanSqlQuery = sqlQuery.replace(/"/g, "'")
+  const cleanReferer = referer.replace(/"/g, "'")
   
-  // Format as complete single line log with all fields
-  return `${timestamp} ${ip} ${method} ${uri}${queryString ? '?' + queryString : ''} ${statusCode} "${userAgent}" "${loginFailMessage}" "${errorMessage || '-'}" "${sessionToken}" "${attackType}" "${sqlQuery}" "${data.referer || '-'}" "${data.response_time_ms || 0}ms" "${data.payload_size || 0}bytes" "${data.request_headers || '-'}"\n`
+  // Format with clear field separators for easy regex parsing
+  // Using consistent delimiters: space for basic fields, quotes for complex fields
+  return `${timestamp} IP=${ip} METHOD=${method} URI=${uri}${queryString ? '?' + queryString : ''} STATUS=${statusCode} USER_AGENT="${cleanUserAgent}" LOGIN_RESULT="${cleanLoginMessage}" ERROR="${cleanErrorMessage}" SESSION="${sessionToken}" ATTACK_TYPE="${attackType}" SQL_QUERY="${cleanSqlQuery}" REFERER="${cleanReferer}" RESPONSE_TIME="${responseTime}ms" PAYLOAD_SIZE="${payloadSize}bytes"\n`
 }
 
 // Helper function to get Vietnam timezone timestamp for Wazuh

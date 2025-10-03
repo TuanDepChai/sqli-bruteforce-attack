@@ -190,6 +190,7 @@ export async function POST(request: NextRequest) {
         payload_size: payloadSize,
         status_code: 401,
         server_response: "Authentication failed - Invalid credentials",
+        uri: "/api/login",
         additional_data: JSON.stringify({
           detectedPatterns: sqlInjectionPatterns
             .filter((p) => p.test(username) || p.test(password))
@@ -245,6 +246,8 @@ export async function POST(request: NextRequest) {
       response_time_ms: responseTime,
       status_code: 500,
       server_response: "SQL syntax error - Database processing failed",
+      uri: "/api/login",
+      referer: request.headers.get("referer") || "N/A",
     })
 
     return NextResponse.json(
