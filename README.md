@@ -101,19 +101,19 @@ echo "SQL Injection: $(grep -c 'sql_injection' logs/attacks.log)"
 echo "Brute Force: $(grep -c 'brute_force' logs/attacks.log)"
 ```
 
-## 🛡️ OSSEC Integration (Production)
+## 🛡️ Wazuh Integration (Production)
 
 ### Ubuntu Server Deployment
 ```bash
 # One-command deployment
-curl -sSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/scripts/ossecc-integration.sh | bash
+curl -sSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/scripts/web-server-deployment.sh | bash
 ```
 
 ### Features
 - **Automated Setup**: Node.js, dependencies, systemd service
-- **OSSEC Agent**: Automatic installation and configuration
-- **Log Monitoring**: All attack logs monitored by OSSEC
-- **Custom Rules**: SQL injection & brute force detection
+- **Wazuh Agent**: Configuration template for log monitoring
+- **Log Collection**: All attack logs ready for Wazuh collection
+- **AI/ML Ready**: Logs formatted for unsupervised learning
 
 ## 📁 Log Format
 

@@ -1,7 +1,7 @@
 # Ubuntu Web Server Deployment Guide (192.168.205.100)
 
 ## 🎯 Overview
-Deploy SQLi BruteForce Attack Detection Web Application on Ubuntu server with OSSEC integration.
+Deploy SQLi BruteForce Attack Detection Web Application on Ubuntu server with Wazuh log collection.
 
 ## 🏗️ System Requirements
 - **OS**: Ubuntu 20.04 LTS or later
@@ -46,7 +46,7 @@ sudo netplan apply
 ### Option 1: One-Command Deployment
 ```bash
 # Download and run deployment script
-curl -sSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/scripts/ossecc-integration.sh | bash
+curl -sSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/scripts/web-server-deployment.sh | bash
 ```
 
 ### Option 2: Manual Deployment
@@ -58,8 +58,8 @@ sudo chown -R $USER:$USER /opt/sqli-bruteforce-attack
 cd /opt/sqli-bruteforce-attack
 
 # 2. Run deployment script
-chmod +x scripts/ossecc-integration.sh
-./scripts/ossecc-integration.sh
+chmod +x scripts/web-server-deployment.sh
+./scripts/web-server-deployment.sh
 ```
 
 ## 🔧 Manual Installation Steps
@@ -154,29 +154,19 @@ sudo systemctl enable sqli-bruteforce
 sudo systemctl start sqli-bruteforce
 ```
 
-## 🛡️ OSSEC Agent Installation
+## 🛡️ Wazuh Agent Configuration
 
-### 1. Download and Install OSSEC
+### Prerequisites
+- Wazuh agent is already installed on the system
+
+### 1. Configure Log Monitoring
+Add the following configuration to your Wazuh agent configuration file:
+
 ```bash
-cd /tmp
-wget https://github.com/ossec/ossec-hids/archive/refs/tags/3.7.0.tar.gz
-tar -xzf 3.7.0.tar.gz
-cd ossec-hids-3.7.0
-```
+# Edit Wazuh agent configuration
+sudo nano /var/ossec/etc/ossec.conf
 
-### 2. Install OSSEC Agent
-```bash
-sudo ./install.sh
-# Select: agent
-# Enter OSSEC server IP: [YOUR_OSSEC_SERVER_IP]
-# Select: y for all options
-```
-
-### 3. Configure Log Monitoring
-```bash
-sudo tee -a /var/ossec/etc/ossec.conf << EOF
-
-<!-- SQLi BruteForce Attack Logs -->
+# Add these lines:
 <localfile>
   <log_format>syslog</log_format>
   <location>/opt/sqli-bruteforce-attack/logs/attacks.log</location>
@@ -196,18 +186,25 @@ sudo tee -a /var/ossec/etc/ossec.conf << EOF
   <log_format>syslog</log_format>
   <location>/opt/sqli-bruteforce-attack/logs/critical-attacks.log</location>
 </localfile>
-EOF
+
+<localfile>
+  <log_format>syslog</log_format>
+  <location>/opt/sqli-bruteforce-attack/logs/security-events.log</location>
+</localfile>
 ```
 
-### 4. Install Custom Rules
+### 2. Restart Wazuh Agent
 ```bash
-sudo cp /opt/sqli-bruteforce-attack/ossec-rules.xml /var/ossec/etc/rules/
-sudo cp /opt/sqli-bruteforce-attack/ossec-decoder.xml /var/ossec/etc/decoders/
+sudo systemctl restart wazuh-agent
 ```
 
-### 5. Start OSSEC Agent
+### 3. Verify Configuration
 ```bash
-sudo /var/ossec/bin/ossec-control start
+# Check Wazuh agent status
+sudo systemctl status wazuh-agent
+
+# Check Wazuh agent configuration
+sudo /var/ossec/bin/agent_control -l
 ```
 
 ## 🧪 Testing
@@ -259,16 +256,19 @@ sudo journalctl -u sqli-bruteforce -f
 sudo netstat -tlnp | grep :3000
 ```
 
-### OSSEC Monitoring
+### Wazuh Monitoring
 ```bash
-# Check OSSEC status
-sudo /var/ossec/bin/ossec-control status
+# Check Wazuh agent status
+sudo systemctl status wazuh-agent
 
-# View OSSEC alerts
-sudo tail -f /var/ossec/logs/alerts/alerts.log
+# View Wazuh agent logs
+sudo tail -f /var/ossec/logs/ossec.log
 
-# Check OSSEC agent info
+# Check Wazuh agent info
 sudo /var/ossec/bin/agent_control -l
+
+# Check Wazuh manager dashboard
+# Access via web browser to Wazuh manager IP
 ```
 
 ### Log Analysis
@@ -297,16 +297,19 @@ sudo systemctl restart sqli-bruteforce
 sudo lsof -i :3000
 ```
 
-### OSSEC Issues
+### Wazuh Issues
 ```bash
-# Check OSSEC logs
+# Check Wazuh agent logs
 sudo tail -f /var/ossec/logs/ossec.log
 
-# Restart OSSEC
-sudo /var/ossec/bin/ossec-control restart
+# Restart Wazuh agent
+sudo systemctl restart wazuh-agent
 
 # Check agent connection
 sudo /var/ossec/bin/agent_control -l
+
+# Check Wazuh agent configuration
+sudo /var/ossec/bin/verify-agent-conf
 ```
 
 ### Database Issues
@@ -342,15 +345,15 @@ sudo nano /var/ossec/etc/internal_options.conf
 
 ## 🎯 Next Steps
 
-1. **Configure OSSEC Server**: Set up OSSEC server to accept agent connections
+1. **Configure Wazuh Manager**: Set up Wazuh manager to receive logs from agent
 2. **Test Attack Detection**: Run various attack scenarios
-3. **Monitor Alerts**: Check OSSEC alerts for attack detection
-4. **Fine-tune Rules**: Adjust OSSEC rules based on detection needs
-5. **Setup SIEM Dashboard**: Configure OSSEC dashboard for visualization
+3. **Monitor Logs**: Check Wazuh manager dashboard for incoming logs
+4. **Setup AI/ML Analysis**: Configure unsupervised learning for log analysis
+5. **Fine-tune Detection**: Adjust detection rules based on AI analysis
 
 ## 📞 Support
 
 - **Application Logs**: `/opt/sqli-bruteforce-attack/logs/`
-- **OSSEC Logs**: `/var/ossec/logs/`
+- **Wazuh Logs**: `/var/ossec/logs/`
 - **System Logs**: `sudo journalctl -u sqli-bruteforce`
 - **Network Status**: `sudo netstat -tlnp | grep :3000`
