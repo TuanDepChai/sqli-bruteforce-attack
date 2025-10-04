@@ -112,6 +112,7 @@
     "install-mongodb-ubuntu": "bash install-mongodb-ubuntu.sh",
     "auto-setup-ubuntu": "bash auto-setup-ubuntu.sh",
     "one-click-start": "bash one-click-start.sh",
+    "update-and-run": "bash update-and-run.sh",
     "generate-keys": "node generate-env-keys.js",
     "seed-db": "node scripts/seed-database.js",
     "security-audit": "npm audit && npm run lint",
