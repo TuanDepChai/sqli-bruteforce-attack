@@ -161,5 +161,8 @@ userSchema.methods.isAccountLocked = function(): boolean {
 // Check if model already exists
 const User = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
 
+// Named export
+export { User };
+
 // Default export for compatibility
 export default User;

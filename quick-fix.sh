@@ -1,3 +1,120 @@
+#!/bin/bash
+
+echo "🔧 QUICK FIX FOR UBUNTU"
+echo "========================"
+echo ""
+
+# Fix lib/models/User.ts
+echo "Fixing User model exports..."
+cat > lib/models/User.ts << 'EOF'
+import mongoose, { Document, Schema } from 'mongoose';
+import bcrypt from 'bcryptjs';
+
+export interface IUser extends Document {
+  username: string;
+  email: string;
+  password: string;
+  role: 'user' | 'admin' | 'security_analyst';
+  isActive: boolean;
+  isVerified: boolean;
+  lastLogin?: Date;
+  loginAttempts: number;
+  lockUntil?: Date;
+  twoFactorSecret?: string;
+  twoFactorEnabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
+  incrementLoginAttempts(): Promise<void>;
+  resetLoginAttempts(): Promise<void>;
+  isAccountLocked(): boolean;
+}
+
+const userSchema = new Schema<IUser>({
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 30
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true
+  },
+  password: {
+    type: String,
+    required: true,
+    minlength: 8
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'security_analyst'],
+    default: 'user'
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  lastLogin: {
+    type: Date
+  },
+  loginAttempts: {
+    type: Number,
+    default: 0
+  },
+  lockUntil: {
+    type: Date
+  },
+  twoFactorSecret: {
+    type: String
+  },
+  twoFactorEnabled: {
+    type: Boolean,
+    default: false
+  }
+}, {
+  timestamps: true,
+  toJSON: {
+    transform: function(doc, ret) {
+      delete ret.password;
+      delete ret.twoFactorSecret;
+      delete ret.__v;
+      return ret;
+    }
+  }
+});
+
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw new Error('Password comparison failed');
+  }
+};
+
+// Check if model already exists
+const User = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
+
+// Named export
+export { User };
+
+// Default export for compatibility
+export default User;
+EOF
+
+# Fix lib/mongodb.ts
+echo "Fixing MongoDB connection..."
+cat > lib/mongodb.ts << 'EOF'
 import { MongoClient, Db } from 'mongodb';
 import mongoose from 'mongoose';
 
@@ -113,3 +230,9 @@ export async function createSecurityIndexes(db: Db): Promise<void> {
 
 // Default export for compatibility
 export default connectMongoose
+EOF
+
+echo "✅ All fixes applied!"
+echo ""
+echo "Now restart the server with:"
+echo "npm run dev"
