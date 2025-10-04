@@ -28,14 +28,12 @@ const sessionSchema = new Schema<ISession>({
   token: {
     type: String,
     required: true,
-    unique: true,
-    index: true
+    unique: true
   },
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   ip: {
     type: String,
@@ -62,8 +60,7 @@ const sessionSchema = new Schema<ISession>({
   },
   isActive: {
     type: Boolean,
-    default: true,
-    index: true
+    default: true
   },
   deviceInfo: {
     browser: String,

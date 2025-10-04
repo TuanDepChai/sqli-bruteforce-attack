@@ -5,6 +5,7 @@ import { Shield, BookOpen, Terminal, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { floatingAnimation } from "@/lib/animations"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function AnimatedHeader() {
   return (
@@ -21,7 +22,12 @@ export function AnimatedHeader() {
           whileHover={{ scale: 1.05 }}
           transition={{ type: "spring", stiffness: 400 }}
         >
-          <motion.div {...floatingAnimation}>
+          <motion.div
+            animate={{
+              y: [0, -5, 0],
+              transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+            }}
+          >
             <div className="relative">
               <Shield className="w-8 h-8 text-primary" />
               <motion.div
@@ -86,6 +92,15 @@ export function AnimatedHeader() {
               </Button>
             </motion.div>
           </Link>
+
+          {/* Theme Toggle */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <ThemeToggle />
+          </motion.div>
 
           {/* Status Indicator */}
           <motion.div

@@ -89,8 +89,7 @@ const securityEventSchema = new Schema<ISecurityEvent>({
   },
   timestamp: {
     type: Date,
-    default: Date.now,
-    index: true
+    default: Date.now
   },
   location: {
     country: String,

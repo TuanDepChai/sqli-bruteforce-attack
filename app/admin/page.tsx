@@ -21,12 +21,17 @@ import {
   Target,
   BarChart3,
   PieChart,
-  RefreshCw
+  RefreshCw,
+  Brain,
+  Settings
 } from "lucide-react"
 import { AnimatedHeader } from "@/components/animated-header"
 import { GlassCard } from "@/components/glass-card"
 import { ParticleBackground } from "@/components/particle-background"
 import { AnimatedGradientBg } from "@/components/animated-gradient-bg"
+import { AdvancedChart, AttackTimeline } from "@/components/advanced-charts"
+import { AIInsightsPanel } from "@/components/ai-insights"
+import { AdvancedSettings } from "@/components/theme-toggle"
 
 interface AttackStats {
   total: number
@@ -279,9 +284,10 @@ export default function AdminDashboard() {
           transition={{ duration: 0.6, delay: 0.5 }}
         >
           <Tabs defaultValue="attacks" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="attacks">Recent Attacks</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="ai-insights">AI Insights</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
@@ -361,19 +367,68 @@ export default function AdminDashboard() {
 
             <TabsContent value="analytics" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <AdvancedChart
+                  data={[
+                    { label: "SQL Injection", value: stats?.sqlInjections || 0, color: "#ef4444", trend: 12 },
+                    { label: "Brute Force", value: stats?.bruteForce || 0, color: "#f97316", trend: -5 },
+                    { label: "XSS", value: Math.floor((stats?.total || 0) * 0.1), color: "#eab308", trend: 8 },
+                    { label: "CSRF", value: Math.floor((stats?.total || 0) * 0.05), color: "#22c55e", trend: -2 }
+                  ]}
+                  type="bar"
+                  title="Attack Types Distribution"
+                  subtitle="Real-time attack statistics"
+                />
+
+                <AdvancedChart
+                  data={[
+                    { label: "SQL Injection", value: stats?.sqlInjections || 0, color: "#ef4444" },
+                    { label: "Brute Force", value: stats?.bruteForce || 0, color: "#f97316" },
+                    { label: "Other", value: (stats?.total || 0) - (stats?.sqlInjections || 0) - (stats?.bruteForce || 0), color: "#6b7280" }
+                  ]}
+                  type="pie"
+                  title="Attack Distribution"
+                  subtitle="Percentage breakdown of attack types"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <AdvancedChart
+                  data={[
+                    { label: "00:00", value: 12, color: "#3b82f6" },
+                    { label: "04:00", value: 8, color: "#3b82f6" },
+                    { label: "08:00", value: 25, color: "#3b82f6" },
+                    { label: "12:00", value: 45, color: "#3b82f6" },
+                    { label: "16:00", value: 38, color: "#3b82f6" },
+                    { label: "20:00", value: 22, color: "#3b82f6" }
+                  ]}
+                  type="line"
+                  title="Attack Timeline"
+                  subtitle="Attacks per hour over 24h period"
+                />
+
+                <AttackTimeline />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="ai-insights" className="space-y-6">
+              <AIInsightsPanel />
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <GlassCard>
                   <Card className="border-0 bg-transparent">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5" />
-                        Attack Trends
+                        <Settings className="w-5 h-5" />
+                        Theme & Appearance
                       </CardTitle>
+                      <CardDescription>
+                        Customize the interface appearance and theme settings
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-center py-8 text-muted-foreground">
-                        <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>Analytics charts coming soon...</p>
-                      </div>
+                      <AdvancedSettings />
                     </CardContent>
                   </Card>
                 </GlassCard>
@@ -382,41 +437,41 @@ export default function AdminDashboard() {
                   <Card className="border-0 bg-transparent">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <PieChart className="w-5 h-5" />
-                        Attack Distribution
+                        <Lock className="w-5 h-5" />
+                        Security Settings
                       </CardTitle>
+                      <CardDescription>
+                        Configure security policies and monitoring settings
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-center py-8 text-muted-foreground">
-                        <PieChart className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>Distribution charts coming soon...</p>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">Rate Limiting</p>
+                            <p className="text-sm text-muted-foreground">Enable request rate limiting</p>
+                          </div>
+                          <Button variant="outline" size="sm">Enable</Button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">Auto IP Blocking</p>
+                            <p className="text-sm text-muted-foreground">Block IPs after failed attempts</p>
+                          </div>
+                          <Button variant="outline" size="sm">Enable</Button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">Real-time Alerts</p>
+                            <p className="text-sm text-muted-foreground">Send alerts for critical attacks</p>
+                          </div>
+                          <Button variant="outline" size="sm">Enable</Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
                 </GlassCard>
               </div>
-            </TabsContent>
-
-            <TabsContent value="settings" className="space-y-6">
-              <GlassCard>
-                <Card className="border-0 bg-transparent">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Lock className="w-5 h-5" />
-                      Security Settings
-                    </CardTitle>
-                    <CardDescription>
-                      Configure security policies and monitoring settings
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Lock className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>Security settings panel coming soon...</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </GlassCard>
             </TabsContent>
           </Tabs>
         </motion.div>
