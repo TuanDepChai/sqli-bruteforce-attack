@@ -129,7 +129,8 @@ sessionSchema.methods.invalidate = async function() {
   return this.save();
 };
 
-export const Session = mongoose.model<ISession>('Session', sessionSchema);
+// Check if model already exists
+const Session = mongoose.models.Session || mongoose.model<ISession>('Session', sessionSchema);
 
 // Default export for compatibility
 export default Session;

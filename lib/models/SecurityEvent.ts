@@ -123,7 +123,8 @@ securityEventSchema.index({ isBlocked: 1, timestamp: -1 });
 // TTL index to automatically delete old events after 90 days
 securityEventSchema.index({ timestamp: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
 
-export const SecurityEvent = mongoose.model<ISecurityEvent>('SecurityEvent', securityEventSchema);
+// Check if model already exists
+const SecurityEvent = mongoose.models.SecurityEvent || mongoose.model<ISecurityEvent>('SecurityEvent', securityEventSchema);
 
 // Default export for compatibility
 export default SecurityEvent;
