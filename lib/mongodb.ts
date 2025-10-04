@@ -119,3 +119,6 @@ export async function createSecurityIndexes(db: Db): Promise<void> {
     console.error('❌ Error creating security indexes:', error);
   }
 }
+
+// Default export for compatibility
+export default connectMongoose

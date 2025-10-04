@@ -124,3 +124,6 @@ securityEventSchema.index({ isBlocked: 1, timestamp: -1 });
 securityEventSchema.index({ timestamp: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
 
 export const SecurityEvent = mongoose.model<ISecurityEvent>('SecurityEvent', securityEventSchema);
+
+// Default export for compatibility
+export default SecurityEvent;

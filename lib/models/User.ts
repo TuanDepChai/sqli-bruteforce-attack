@@ -159,3 +159,6 @@ userSchema.methods.isAccountLocked = function(): boolean {
 };
 
 export const User = mongoose.model<IUser>('User', userSchema);
+
+// Default export for compatibility
+export default User;

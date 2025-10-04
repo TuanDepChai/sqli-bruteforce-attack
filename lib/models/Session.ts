@@ -130,3 +130,6 @@ sessionSchema.methods.invalidate = async function() {
 };
 
 export const Session = mongoose.model<ISession>('Session', sessionSchema);
+
+// Default export for compatibility
+export default Session;
