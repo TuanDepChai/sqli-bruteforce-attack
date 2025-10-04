@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const { MongoClient } = require('mongodb');
-const bcrypt = require('bcryptjs');
 
 // Configuration
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/secure-app';
@@ -240,28 +239,25 @@ async function setupDatabase() {
       { username: 'test', email: 'test@secure-app.com', password: 'Test123!@#', role: 'user' }
     ];
     
+    // Clear existing users first
+    console.log('🗑️  Clearing existing users...');
+    await db.collection('users').deleteMany({});
+    
     for (const userData of users) {
-      const existingUser = await db.collection('users').findOne({ username: userData.username });
-      if (!existingUser) {
-        const hashedPassword = await bcrypt.hash(userData.password, 12);
-        
-        await db.collection('users').insertOne({
-          username: userData.username,
-          email: userData.email,
-          password: hashedPassword,
-          role: userData.role,
-          isActive: true,
-          isVerified: true,
-          loginAttempts: 0,
-          twoFactorEnabled: false,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
-        
-        console.log(`✅ User created: ${userData.username} / ${userData.password}`);
-      } else {
-        console.log(`ℹ️  User already exists: ${userData.username}`);
-      }
+      await db.collection('users').insertOne({
+        username: userData.username,
+        email: userData.email,
+        password: userData.password, // Plain text for demo
+        role: userData.role,
+        isActive: true,
+        isVerified: true,
+        loginAttempts: 0,
+        twoFactorEnabled: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      console.log(`✅ User created: ${userData.username} / ${userData.password}`);
     }
     
     console.log('🎉 Database setup completed successfully!');
