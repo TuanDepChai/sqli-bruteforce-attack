@@ -199,9 +199,7 @@ async function setupDatabase() {
       }
     };
     
-    // Users indexes
-    await createIndexSafe(db.collection('users'), { email: 1 }, { unique: true });
-    await createIndexSafe(db.collection('users'), { username: 1 }, { unique: true });
+    // Users indexes (skip unique indexes - handled by Mongoose schema)
     await createIndexSafe(db.collection('users'), { createdAt: 1 });
     await createIndexSafe(db.collection('users'), { lastLogin: 1 });
     

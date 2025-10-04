@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getAttackLogs } from "@/lib/logger"
+import { getAttackLogs } from "@/lib/simple-logger"
 
 export async function GET(request: NextRequest) {
   try {
