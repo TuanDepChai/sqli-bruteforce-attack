@@ -1,12 +1,20 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDatabase } from "@/lib/db"
+import { dbConnect } from "@/lib/db"
 import { logAttack } from "@/lib/logger"
+import { User } from "@/lib/models/User"
+import bcrypt from "bcryptjs"
 
 // INTENTIONALLY VULNERABLE - FOR EDUCATIONAL PURPOSES ONLY
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
   const { username, password } = await request.json()
-  const db = getDatabase()
+  
+  try {
+    await dbConnect()
+  } catch (error) {
+    console.error('Database connection failed:', error)
+    return NextResponse.json({ success: false, message: "Database connection failed" }, { status: 500 })
+  }
 
   const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
   const userAgent = request.headers.get("user-agent") || "unknown"
@@ -40,43 +48,12 @@ export async function POST(request: NextRequest) {
   const currentTime = Date.now()
   const timeWindow = 5 * 60 * 1000 // 5 minutes window
   
-  // Check for rapid successive requests from same IP
-  const recentAttempts = db.prepare(`
-    SELECT COUNT(*) as count, 
-           COUNT(DISTINCT username_attempt) as unique_usernames,
-           COUNT(DISTINCT password_attempt) as unique_passwords,
-           MIN(timestamp) as first_attempt,
-           MAX(timestamp) as last_attempt
-    FROM attack_logs 
-    WHERE ip_address = ? 
-    AND datetime(timestamp) > datetime('now', '-5 minutes')
-  `).get(ip)
-  
-  const rapidRequests = recentAttempts.count > 10 // More than 10 attempts in 5 minutes
-  const multipleUsernames = recentAttempts.unique_usernames > 5 // Trying many usernames
-  const multiplePasswords = recentAttempts.unique_passwords > 10 // Trying many passwords
-  
-  // Check for repeated failed attempts from same IP
-  const failedAttempts = db.prepare(`
-    SELECT COUNT(*) as count
-    FROM attack_logs 
-    WHERE ip_address = ? 
-    AND success = 0
-    AND datetime(timestamp) > datetime('now', '-5 minutes')
-  `).get(ip).count
-  
-  const highFailureRate = failedAttempts > 8 // More than 8 failed attempts in 5 minutes
-  
-  // Check for dictionary attack patterns (same username, different passwords)
-  const sameUsernameAttempts = db.prepare(`
-    SELECT COUNT(DISTINCT password_attempt) as password_count
-    FROM attack_logs 
-    WHERE ip_address = ? 
-    AND username_attempt = ?
-    AND datetime(timestamp) > datetime('now', '-5 minutes')
-  `).get(ip, username)
-  
-  const dictionaryAttack = sameUsernameAttempts.password_count > 5 // Same username, many passwords
+  // Check for rapid successive requests from same IP (simplified for demo)
+  const rapidRequests = false // Simplified for demo
+  const multipleUsernames = false // Simplified for demo  
+  const multiplePasswords = false // Simplified for demo
+  const highFailureRate = false // Simplified for demo
+  const dictionaryAttack = false // Simplified for demo
   
   // Check for systematic password patterns
   const isCommonPassword = [
@@ -96,13 +73,15 @@ export async function POST(request: NextRequest) {
                                dictionaryAttack || 
                                isCommonPattern
 
-  // VULNERABLE SQL QUERY - Intentionally using string concatenation
+  // VULNERABLE QUERY - Intentionally using string concatenation for demo
   const vulnerableQuery = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`
 
   try {
-    // Execute the vulnerable query
-    const stmt = db.prepare(vulnerableQuery)
-    const user = stmt.get()
+    // Execute the vulnerable query using MongoDB
+    const user = await User.findOne({ 
+      username: username,
+      password: password // Intentionally vulnerable - should use bcrypt in production
+    })
 
     const responseTime = Date.now() - startTime
     const payloadSize = JSON.stringify({ username, password }).length
@@ -134,19 +113,15 @@ export async function POST(request: NextRequest) {
         detectedPatterns: sqlInjectionPatterns
           .filter((p) => p.test(username) || p.test(password))
           .map((p) => p.toString()),
-        bruteForceIndicators: {
-          rapidRequests,
-          multipleUsernames,
-          multiplePasswords,
-          highFailureRate,
-          dictionaryAttack,
-          isCommonPattern,
-          recentAttemptsCount: recentAttempts.count,
-          uniqueUsernames: recentAttempts.unique_usernames,
-          uniquePasswords: recentAttempts.unique_passwords,
-          failedAttemptsCount: failedAttempts,
-          hasBruteForcePatterns
-        },
+          bruteForceIndicators: {
+            rapidRequests,
+            multipleUsernames,
+            multiplePasswords,
+            highFailureRate,
+            dictionaryAttack,
+            isCommonPattern,
+            hasBruteForcePatterns
+          },
         timestamp: new Date().toLocaleString("en-US", { 
           timeZone: "Asia/Ho_Chi_Minh",
           year: 'numeric',
@@ -165,10 +140,10 @@ export async function POST(request: NextRequest) {
         success: true,
         message: "Login successful",
         user: {
-          id: (user as any).id,
-          username: (user as any).username,
-          email: (user as any).email,
-          role: (user as any).role,
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
         },
         vulnerability: containsSqlInjection ? "SQL Injection detected and exploited!" : 
                        hasBruteForcePatterns ? "Brute force attack pattern detected!" : null,
@@ -202,10 +177,6 @@ export async function POST(request: NextRequest) {
             highFailureRate,
             dictionaryAttack,
             isCommonPattern,
-            recentAttemptsCount: recentAttempts.count,
-            uniqueUsernames: recentAttempts.unique_usernames,
-            uniquePasswords: recentAttempts.unique_passwords,
-            failedAttemptsCount: failedAttempts,
             hasBruteForcePatterns
           },
           timestamp: new Date().toLocaleString("en-US", { 
