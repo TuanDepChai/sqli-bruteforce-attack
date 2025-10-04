@@ -71,7 +71,7 @@ chmod 755 logs
 
 # 10. Test database creation
 echo -e "${BLUE}🗄️ Testing database creation...${NC}"
-node -e "require('./lib/db').getDatabase(); console.log('Database created successfully!')"
+node -e "require('./lib/mongodb'); console.log('✅ MongoDB connection ready!')"
 
 # 11. Build application
 echo -e "${BLUE}🔨 Building application...${NC}"

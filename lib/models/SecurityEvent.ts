@@ -1,17 +1,17 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ISecurityEvent extends Document {
-  eventType: 'login_attempt' | 'sql_injection' | 'brute_force' | 'xss' | 'csrf' | 'unauthorized_access' | 'suspicious_activity';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  ip: string;
-  userAgent: string;
+  eventType?: 'login_attempt' | 'sql_injection' | 'brute_force' | 'xss' | 'csrf' | 'unauthorized_access' | 'suspicious_activity' | 'security_event';
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  ip?: string;
+  userAgent?: string;
   userId?: string;
   username?: string;
-  endpoint: string;
-  method: string;
+  endpoint?: string;
+  method?: string;
   payload?: any;
   response?: any;
-  statusCode: number;
+  statusCode?: number;
   timestamp: Date;
   location?: {
     country?: string;
@@ -20,31 +20,44 @@ export interface ISecurityEvent extends Document {
     latitude?: number;
     longitude?: number;
   };
-  riskScore: number;
-  isBlocked: boolean;
-  details: string;
+  riskScore?: number;
+  isBlocked?: boolean;
+  details?: string;
   metadata?: any;
+  // Attack logging fields
+  usernameAttempt?: string;
+  passwordAttempt?: string;
+  attackType?: string;
+  sqlQuery?: string;
+  success?: boolean;
+  errorMessage?: string;
+  requestMethod?: string;
+  requestHeaders?: string;
+  geoLocation?: string;
+  deviceFingerprint?: string;
+  sessionId?: string;
+  referer?: string;
+  responseTimeMs?: number;
+  payloadSize?: number;
+  additionalData?: string;
+  serverResponse?: string;
+  description?: string;
 }
 
 const securityEventSchema = new Schema<ISecurityEvent>({
   eventType: {
     type: String,
-    required: true,
-    enum: ['login_attempt', 'sql_injection', 'brute_force', 'xss', 'csrf', 'unauthorized_access', 'suspicious_activity']
+    enum: ['login_attempt', 'sql_injection', 'brute_force', 'xss', 'csrf', 'unauthorized_access', 'suspicious_activity', 'security_event']
   },
   severity: {
     type: String,
-    required: true,
     enum: ['low', 'medium', 'high', 'critical']
   },
   ip: {
-    type: String,
-    required: true,
-    match: /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+    type: String
   },
   userAgent: {
     type: String,
-    required: true,
     maxlength: 500
   },
   userId: {
@@ -57,12 +70,10 @@ const securityEventSchema = new Schema<ISecurityEvent>({
   },
   endpoint: {
     type: String,
-    required: true,
     maxlength: 200
   },
   method: {
     type: String,
-    required: true,
     enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
   },
   payload: {
@@ -73,7 +84,6 @@ const securityEventSchema = new Schema<ISecurityEvent>({
   },
   statusCode: {
     type: Number,
-    required: true,
     min: 100,
     max: 599
   },
@@ -91,7 +101,6 @@ const securityEventSchema = new Schema<ISecurityEvent>({
   },
   riskScore: {
     type: Number,
-    required: true,
     min: 0,
     max: 100,
     default: 0
@@ -102,12 +111,29 @@ const securityEventSchema = new Schema<ISecurityEvent>({
   },
   details: {
     type: String,
-    required: true,
     maxlength: 1000
   },
   metadata: {
     type: Schema.Types.Mixed
-  }
+  },
+  // Attack logging fields
+  usernameAttempt: String,
+  passwordAttempt: String,
+  attackType: String,
+  sqlQuery: String,
+  success: Boolean,
+  errorMessage: String,
+  requestMethod: String,
+  requestHeaders: String,
+  geoLocation: String,
+  deviceFingerprint: String,
+  sessionId: String,
+  referer: String,
+  responseTimeMs: Number,
+  payloadSize: Number,
+  additionalData: String,
+  serverResponse: String,
+  description: String
 }, {
   timestamps: true
 });
@@ -125,6 +151,9 @@ securityEventSchema.index({ timestamp: 1 }, { expireAfterSeconds: 90 * 24 * 60 *
 
 // Check if model already exists
 const SecurityEvent = mongoose.models.SecurityEvent || mongoose.model<ISecurityEvent>('SecurityEvent', securityEventSchema);
+
+// Named export
+export { SecurityEvent };
 
 // Default export for compatibility
 export default SecurityEvent;

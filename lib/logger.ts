@@ -1,5 +1,5 @@
-import { getDatabase } from "./db"
 import { logAttackToFile, logSecurityEventToFile } from "./file-logger"
+import { SecurityEvent } from "./models/SecurityEvent"
 
 export interface AttackLog {
   ip_address?: string
@@ -46,48 +46,41 @@ function getVietnamDisplayTimestamp() {
 }
 
 export function logAttack(log: AttackLog) {
-  const startTime = Date.now()
-  const db = getDatabase()
   const vietnamTimestamp = getVietnamTimestamp()
-
-  const stmt = db.prepare(`
-    INSERT INTO attack_logs (
-      timestamp, ip_address, username_attempt, password_attempt, 
-      attack_type, sql_query, success, error_message, 
-      user_agent, request_method, request_headers,
-      geo_location, device_fingerprint, session_id,
-      referer, response_time_ms, payload_size, additional_data,
-      status_code, server_response
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
-
-  const result = stmt.run(
-    vietnamTimestamp,
-    log.ip_address || "unknown",
-    log.username_attempt,
-    log.password_attempt,
-    log.attack_type,
-    log.sql_query || null,
-    log.success ? 1 : 0,
-    log.error_message || null,
-    log.user_agent || null,
-    log.request_method || "POST",
-    log.request_headers || null,
-    log.geo_location || null,
-    log.device_fingerprint || null,
-    log.session_id || null,
-    log.referer || null,
-    log.response_time_ms || null,
-    log.payload_size || null,
-    log.additional_data || null,
-    log.status_code || null,
-    log.server_response || null,
-  )
-
   const displayTimestamp = getVietnamDisplayTimestamp()
   
+  // Create attack log entry for MongoDB
+  const attackLogEntry = {
+    timestamp: new Date(vietnamTimestamp),
+    ip: log.ip_address || "unknown",
+    usernameAttempt: log.username_attempt,
+    passwordAttempt: log.password_attempt,
+    attackType: log.attack_type,
+    sqlQuery: log.sql_query || null,
+    success: log.success,
+    errorMessage: log.error_message || null,
+    userAgent: log.user_agent || null,
+    requestMethod: log.request_method || "POST",
+    requestHeaders: log.request_headers || null,
+    geoLocation: log.geo_location || null,
+    deviceFingerprint: log.device_fingerprint || null,
+    sessionId: log.session_id || null,
+    referer: log.referer || null,
+    responseTimeMs: log.response_time_ms || null,
+    payloadSize: log.payload_size || null,
+    additionalData: log.additional_data || null,
+    statusCode: log.status_code || null,
+    serverResponse: log.server_response || null,
+  }
+
+  // Save to MongoDB (async, don't wait)
+  SecurityEvent.create(attackLogEntry).catch(err => {
+    console.error('Failed to save attack log to MongoDB:', err)
+  })
+
+  // Also save to file
   const logWithId = {
-    id: result.lastInsertRowid,
+    id: Date.now(), // Use timestamp as ID for file logging
     timestamp: displayTimestamp,
     ...log,
   }
@@ -109,62 +102,64 @@ export function logAttack(log: AttackLog) {
   }
 }
 
-export function getAttackLogs(limit = 100) {
-  const db = getDatabase()
-  const stmt = db.prepare(`
-    SELECT * FROM attack_logs 
-    ORDER BY timestamp DESC 
-    LIMIT ?
-  `)
-  return stmt.all(limit)
-}
-
-export function getAttackStats() {
-  const db = getDatabase()
-
-  const totalAttacks = db.prepare("SELECT COUNT(*) as count FROM attack_logs").get() as { count: number }
-  const sqlInjections = db
-    .prepare("SELECT COUNT(*) as count FROM attack_logs WHERE attack_type = 'sql_injection'")
-    .get() as { count: number }
-  const bruteForce = db
-    .prepare("SELECT COUNT(*) as count FROM attack_logs WHERE attack_type = 'brute_force'")
-    .get() as { count: number }
-  const successfulAttacks = db.prepare("SELECT COUNT(*) as count FROM attack_logs WHERE success = 1").get() as {
-    count: number
-  }
-
-  return {
-    total: totalAttacks.count,
-    sqlInjections: sqlInjections.count,
-    bruteForce: bruteForce.count,
-    successful: successfulAttacks.count,
+export async function getAttackLogs(limit = 100) {
+  try {
+    return await SecurityEvent.find({})
+      .sort({ timestamp: -1 })
+      .limit(limit)
+      .lean()
+  } catch (error) {
+    console.error('Failed to get attack logs:', error)
+    return []
   }
 }
 
-export function logSecurityEvent(event: {
+export async function getAttackStats() {
+  try {
+    const total = await SecurityEvent.countDocuments({})
+    const sqlInjections = await SecurityEvent.countDocuments({ attackType: 'sql_injection' })
+    const bruteForce = await SecurityEvent.countDocuments({ attackType: 'brute_force' })
+    const successful = await SecurityEvent.countDocuments({ success: true })
+
+    return {
+      total,
+      sqlInjections,
+      bruteForce,
+      successful,
+    }
+  } catch (error) {
+    console.error('Failed to get attack stats:', error)
+    return {
+      total: 0,
+      sqlInjections: 0,
+      bruteForce: 0,
+      successful: 0,
+    }
+  }
+}
+
+export async function logSecurityEvent(event: {
   severity: string
   description: string
   ip_address?: string
-  user_id?: number
+  user_id?: string
   metadata?: string
 }) {
-  const db = getDatabase()
   const vietnamTimestamp = getVietnamTimestamp()
   
-  const stmt = db.prepare(`
-    INSERT INTO security_events (
-      severity, description, ip_address, user_id, metadata, timestamp
-    ) VALUES (?, ?, ?, ?, ?, ?)
-  `)
-
-  stmt.run(
-    event.severity,
-    event.description,
-    event.ip_address || null,
-    event.user_id || null,
-    event.metadata || null,
-    vietnamTimestamp,
-  )
+  try {
+    await SecurityEvent.create({
+      timestamp: new Date(vietnamTimestamp),
+      eventType: 'security_event',
+      severity: event.severity,
+      description: event.description,
+      ip: event.ip_address || null,
+      userId: event.user_id || null,
+      metadata: event.metadata || null,
+    })
+  } catch (error) {
+    console.error('Failed to save security event to MongoDB:', error)
+  }
 
   logSecurityEventToFile({
     ...event,
@@ -172,12 +167,14 @@ export function logSecurityEvent(event: {
   })
 }
 
-export function getSecurityEvents(limit = 50) {
-  const db = getDatabase()
-  const stmt = db.prepare(`
-    SELECT * FROM security_events 
-    ORDER BY timestamp DESC 
-    LIMIT ?
-  `)
-  return stmt.all(limit)
+export async function getSecurityEvents(limit = 50) {
+  try {
+    return await SecurityEvent.find({ eventType: 'security_event' })
+      .sort({ timestamp: -1 })
+      .limit(limit)
+      .lean()
+  } catch (error) {
+    console.error('Failed to get security events:', error)
+    return []
+  }
 }

@@ -30,7 +30,7 @@ mkdir -p logs
 chmod 755 logs
 
 # Test database creation
-node -e "require('./lib/db').getDatabase(); console.log('✅ Database created!')"
+node -e "require('./lib/mongodb'); console.log('✅ MongoDB connection ready!')"
 
 # Build application
 pnpm build

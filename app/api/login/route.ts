@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { dbConnect } from "@/lib/db"
+import dbConnect from "@/lib/mongodb"
 import { logAttack } from "@/lib/logger"
-import { User } from "@/lib/models/User"
+import User from "@/lib/models/User"
 import bcrypt from "bcryptjs"
 
 // INTENTIONALLY VULNERABLE - FOR EDUCATIONAL PURPOSES ONLY
