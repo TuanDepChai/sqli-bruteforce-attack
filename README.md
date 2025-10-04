@@ -12,11 +12,43 @@ Professional security training application featuring:
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- **Node.js**: 18.x or higher
-- **npm/pnpm**: Latest version
+### Ubuntu/Linux Setup (Recommended)
 
-### Installation
+#### One-Command Setup
+```bash
+# Download and run setup script
+curl -fsSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/setup.sh | bash
+```
+
+#### Manual Setup
+```bash
+# 1. Clone repository
+git clone https://github.com/TuanDepChai/sqli-bruteforce-attack.git
+cd sqli-bruteforce-attack
+
+# 2. Run setup script
+chmod +x setup.sh
+./setup.sh
+
+# 3. Start application
+npm run dev
+```
+
+#### Server Deployment
+```bash
+# For production server deployment
+chmod +x ubuntu-server-setup.sh
+./ubuntu-server-setup.sh
+```
+
+### Windows Setup
+
+#### Prerequisites
+- **Node.js**: 18.x or higher
+- **npm**: Latest version
+- **MongoDB**: 7.0 or higher
+
+#### Installation
 ```bash
 # 1. Clone repository
 git clone https://github.com/TuanDepChai/sqli-bruteforce-attack.git
@@ -25,7 +57,10 @@ cd sqli-bruteforce-attack
 # 2. Install dependencies
 npm install
 
-# 3. Start application
+# 3. Setup MongoDB database
+npm run setup-db
+
+# 4. Start application
 npm run dev
 ```
 
