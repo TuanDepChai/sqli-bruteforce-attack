@@ -1,21 +1,15 @@
 import { NextResponse } from "next/server"
-import { getAttackStats } from "@/lib/simple-logger"
+import { realTimeLogger } from "@/lib/real-time-logger"
 
 export async function GET() {
   try {
-    const stats = await getAttackStats()
+    const stats = realTimeLogger.getRealTimeStats()
     
-    // Add some mock data for demo
-    const mockStats = {
-      total: stats.total || 247,
-      sqlInjections: stats.sqlInjections || 89,
-      bruteForce: stats.bruteForce || 156,
-      successful: stats.successful || 23,
-      blocked: stats.blocked || 224,
-      today: Math.floor(Math.random() * 50) + 10, // Random today's count
-    }
-    
-    return NextResponse.json(mockStats)
+    return NextResponse.json({ 
+      success: true, 
+      data: stats,
+      timestamp: new Date().toISOString()
+    })
   } catch (error) {
     console.error('Failed to fetch stats:', error)
     return NextResponse.json(

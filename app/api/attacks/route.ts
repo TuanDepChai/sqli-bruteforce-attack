@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getAttackLogs } from "@/lib/simple-logger"
+import { realTimeLogger } from "@/lib/real-time-logger"
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '50')
     
-    const attacks = await getAttackLogs(limit)
+    const attacks = realTimeLogger.getAllLogs(limit)
     
     // Transform data for frontend
     const transformedAttacks = attacks.map((attack: any, index: number) => ({

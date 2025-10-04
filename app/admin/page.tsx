@@ -32,6 +32,8 @@ import { AnimatedGradientBg } from "@/components/animated-gradient-bg"
 import { AdvancedChart, AttackTimeline } from "@/components/advanced-charts"
 import { AIInsightsPanel } from "@/components/ai-insights"
 import { AdvancedSettings } from "@/components/theme-toggle"
+import { RealTimeDashboard } from "@/components/real-time-dashboard"
+import { RealTimeAnalytics } from "@/components/real-time-analytics"
 
 interface AttackStats {
   total: number
@@ -283,13 +285,18 @@ export default function AdminDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <Tabs defaultValue="attacks" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="realtime" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="realtime">Real-time</TabsTrigger>
               <TabsTrigger value="attacks">Recent Attacks</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="ai-insights">AI Insights</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="realtime" className="space-y-6">
+              <RealTimeDashboard />
+            </TabsContent>
 
             <TabsContent value="attacks" className="space-y-6">
               <GlassCard>
@@ -366,48 +373,7 @@ export default function AdminDashboard() {
             </TabsContent>
 
             <TabsContent value="analytics" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <AdvancedChart
-                  data={[
-                    { label: "SQL Injection", value: stats?.sqlInjections || 0, color: "#ef4444", trend: 12 },
-                    { label: "Brute Force", value: stats?.bruteForce || 0, color: "#f97316", trend: -5 },
-                    { label: "XSS", value: Math.floor((stats?.total || 0) * 0.1), color: "#eab308", trend: 8 },
-                    { label: "CSRF", value: Math.floor((stats?.total || 0) * 0.05), color: "#22c55e", trend: -2 }
-                  ]}
-                  type="bar"
-                  title="Attack Types Distribution"
-                  subtitle="Real-time attack statistics"
-                />
-
-                <AdvancedChart
-                  data={[
-                    { label: "SQL Injection", value: stats?.sqlInjections || 0, color: "#ef4444" },
-                    { label: "Brute Force", value: stats?.bruteForce || 0, color: "#f97316" },
-                    { label: "Other", value: (stats?.total || 0) - (stats?.sqlInjections || 0) - (stats?.bruteForce || 0), color: "#6b7280" }
-                  ]}
-                  type="pie"
-                  title="Attack Distribution"
-                  subtitle="Percentage breakdown of attack types"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <AdvancedChart
-                  data={[
-                    { label: "00:00", value: 12, color: "#3b82f6" },
-                    { label: "04:00", value: 8, color: "#3b82f6" },
-                    { label: "08:00", value: 25, color: "#3b82f6" },
-                    { label: "12:00", value: 45, color: "#3b82f6" },
-                    { label: "16:00", value: 38, color: "#3b82f6" },
-                    { label: "20:00", value: 22, color: "#3b82f6" }
-                  ]}
-                  type="line"
-                  title="Attack Timeline"
-                  subtitle="Attacks per hour over 24h period"
-                />
-
-                <AttackTimeline />
-              </div>
+              <RealTimeAnalytics />
             </TabsContent>
 
             <TabsContent value="ai-insights" className="space-y-6">
