@@ -84,7 +84,7 @@ export default function LoginPage() {
           <motion.div className="space-y-6" variants={staggerContainer} initial="initial" animate="animate">
             <motion.div variants={fadeInUp}>
               <motion.h1
-                className="text-4xl font-bold mb-4 text-balance"
+                className="text-5xl md:text-6xl font-bold mb-6 text-balance bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -92,14 +92,33 @@ export default function LoginPage() {
                 Security Training Platform
               </motion.h1>
               <motion.p
-                className="text-muted-foreground text-lg leading-relaxed"
+                className="text-muted-foreground text-xl leading-relaxed mb-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
-                Practice penetration testing in a safe, controlled environment. This application is intentionally
-                vulnerable for educational purposes.
+                Master cybersecurity skills through hands-on practice in a controlled, intentionally vulnerable environment.
               </motion.p>
+              <motion.div
+                className="flex flex-wrap gap-2 mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                {["SQL Injection", "Brute Force", "XSS", "CSRF", "Authentication Bypass"].map((tag, index) => (
+                  <motion.span
+                    key={tag}
+                    className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 + index * 0.1, type: "spring" }}
+                    whileHover={{ scale: 1.05, backgroundColor: "var(--primary)" }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {tag}
+                  </motion.span>
+                ))}
+              </motion.div>
             </motion.div>
 
             <GlassCard delay={0.2}>
@@ -122,35 +141,54 @@ export default function LoginPage() {
                     Educational Purpose Only
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
                   {[
-                    { title: "SQL Injection Vulnerable", desc: "Try: admin' OR '1'='1" },
-                    { title: "No Rate Limiting", desc: "Brute force attacks allowed" },
-                    { title: "Comprehensive Logging", desc: "All attempts are logged" },
+                    { 
+                      title: "SQL Injection Vulnerable", 
+                      desc: "Try: admin' OR '1'='1", 
+                      icon: <Terminal className="w-4 h-4" />,
+                      color: "text-red-500"
+                    },
+                    { 
+                      title: "Brute Force Enabled", 
+                      desc: "No rate limiting on login attempts", 
+                      icon: <Zap className="w-4 h-4" />,
+                      color: "text-orange-500"
+                    },
+                    { 
+                      title: "Real-time Logging", 
+                      desc: "All attacks logged to MongoDB + files", 
+                      icon: <Eye className="w-4 h-4" />,
+                      color: "text-blue-500"
+                    },
+                    { 
+                      title: "Security Analytics", 
+                      desc: "AI-powered attack detection", 
+                      icon: <Target className="w-4 h-4" />,
+                      color: "text-green-500"
+                    },
                   ].map((item, index) => (
                     <motion.div
                       key={index}
-                      className="flex items-start gap-3"
+                      className="flex items-start gap-3 p-3 rounded-lg hover:bg-primary/5 transition-colors"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 + index * 0.1 }}
                       whileHover={{ x: 5, transition: { duration: 0.2 } }}
                     >
                       <motion.div
-                        className="w-2 h-2 rounded-full bg-primary mt-2"
+                        className={`p-2 rounded-lg bg-background/50 ${item.color}`}
                         animate={{
-                          scale: [1, 1.3, 1],
-                          boxShadow: [
-                            "0 0 0px rgba(120, 119, 198, 0.5)",
-                            "0 0 10px rgba(120, 119, 198, 0.8)",
-                            "0 0 0px rgba(120, 119, 198, 0.5)",
-                          ],
+                          scale: [1, 1.1, 1],
+                          rotate: [0, 5, -5, 0],
                         }}
                         transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: index * 0.3 }}
-                      />
-                      <div>
-                        <p className="font-medium">{item.title}</p>
-                        <p className="text-sm text-muted-foreground">{item.desc}</p>
+                      >
+                        {item.icon}
+                      </motion.div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{item.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -171,22 +209,50 @@ export default function LoginPage() {
                     Default Credentials
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="font-mono text-sm space-y-1 text-muted-foreground">
-                  {["admin / admin123", "user / password", "john / john2024"].map((cred, index) => (
-                    <motion.p
+                <CardContent className="space-y-2">
+                  {[
+                    { user: "admin", pass: "Admin123!@#", role: "Administrator", color: "text-red-500" },
+                    { user: "security", pass: "Security123!@#", role: "Security Analyst", color: "text-orange-500" },
+                    { user: "john", pass: "John123!@#", role: "Regular User", color: "text-blue-500" },
+                    { user: "sarah", pass: "Sarah123!@#", role: "Regular User", color: "text-green-500" },
+                    { user: "test", pass: "Test123!@#", role: "Test Account", color: "text-purple-500" },
+                  ].map((cred, index) => (
+                    <motion.div
                       key={index}
+                      className="flex items-center justify-between p-2 rounded-lg hover:bg-primary/5 transition-colors"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.5 + index * 0.1 }}
                       whileHover={{
                         x: 5,
-                        color: "var(--primary)",
                         transition: { duration: 0.2 },
                       }}
-                      className="cursor-default"
                     >
-                      {cred}
-                    </motion.p>
+                      <div className="flex items-center gap-3">
+                        <motion.div
+                          className="w-2 h-2 rounded-full bg-primary"
+                          animate={{
+                            scale: [1, 1.2, 1],
+                            opacity: [0.5, 1, 0.5],
+                          }}
+                          transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: index * 0.2 }}
+                        />
+                        <div>
+                          <p className="font-mono text-sm font-medium">
+                            <span className={cred.color}>{cred.user}</span>
+                            <span className="text-muted-foreground"> / </span>
+                            <span className="text-primary">{cred.pass}</span>
+                          </p>
+                          <p className="text-xs text-muted-foreground">{cred.role}</p>
+                        </div>
+                      </div>
+                      <motion.div
+                        className="text-xs text-muted-foreground"
+                        whileHover={{ scale: 1.1 }}
+                      >
+                        Click to copy
+                      </motion.div>
+                    </motion.div>
                   ))}
                 </CardContent>
               </Card>

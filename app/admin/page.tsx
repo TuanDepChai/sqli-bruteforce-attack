@@ -1,538 +1,424 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import React, { useState, useEffect } from "react"
+import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  Shield,
-  Activity,
-  AlertTriangle,
-  CheckCircle,
-  RefreshCw,
-  ArrowLeft,
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { 
+  Shield, 
+  AlertTriangle, 
+  Users, 
+  Activity, 
+  Lock, 
+  Eye, 
+  TrendingUp, 
+  Clock,
+  Globe,
   Database,
-  Filter,
-  Download,
-  Search,
-  Calendar,
-  X,
+  Zap,
+  Target,
+  BarChart3,
+  PieChart,
+  RefreshCw
 } from "lucide-react"
-import Link from "next/link"
-import { fadeInUp, staggerContainer } from "@/lib/animations"
+import { AnimatedHeader } from "@/components/animated-header"
+import { GlassCard } from "@/components/glass-card"
 import { ParticleBackground } from "@/components/particle-background"
+import { AnimatedGradientBg } from "@/components/animated-gradient-bg"
 
-function AnimatedCounter({ value, duration = 1 }: { value: number; duration?: number }) {
-  const [count, setCount] = useState(0)
+interface AttackStats {
+  total: number
+  sqlInjections: number
+  bruteForce: number
+  successful: number
+  blocked: number
+  today: number
+}
 
-  useEffect(() => {
-    let start = 0
-    const end = value
-    const increment = end / (duration * 60)
-    const timer = setInterval(() => {
-      start += increment
-      if (start >= end) {
-        setCount(end)
-        clearInterval(timer)
-      } else {
-        setCount(Math.floor(start))
-      }
-    }, 1000 / 60)
-
-    return () => clearInterval(timer)
-  }, [value, duration])
-
-  return <span>{count}</span>
+interface RecentAttack {
+  id: string
+  timestamp: string
+  ip: string
+  username: string
+  attackType: string
+  success: boolean
+  userAgent: string
+  riskScore: number
 }
 
 export default function AdminDashboard() {
-  const [logs, setLogs] = useState<any[]>([])
-  const [filteredLogs, setFilteredLogs] = useState<any[]>([])
-  const [stats, setStats] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [mounted, setMounted] = useState(false)
-
-  const [filters, setFilters] = useState({
-    search: "",
-    attackType: "all",
-    success: "all",
-    dateFrom: "",
-    dateTo: "",
-    ipAddress: "",
+  const [stats, setStats] = useState<AttackStats>({
+    total: 0,
+    sqlInjections: 0,
+    bruteForce: 0,
+    successful: 0,
+    blocked: 0,
+    today: 0
   })
-  const [showFilters, setShowFilters] = useState(false)
+  
+  const [recentAttacks, setRecentAttacks] = useState<RecentAttack[]>([])
+  const [loading, setLoading] = useState(true)
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/stats')
+      const data = await response.json()
+      setStats(data)
+      setLastUpdate(new Date())
+    } catch (error) {
+      console.error('Failed to fetch stats:', error)
+    }
+  }
+
+  const fetchRecentAttacks = async () => {
+    try {
+      const response = await fetch('/api/attacks?limit=10')
+      const data = await response.json()
+      setRecentAttacks(data)
+    } catch (error) {
+      console.error('Failed to fetch recent attacks:', error)
+    }
+  }
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const fetchLogs = async () => {
-    setLoading(true)
-    try {
-      const response = await fetch("/api/logs")
-      const data = await response.json()
-      if (data.success) {
-        setLogs(data.logs)
-        setFilteredLogs(data.logs)
-        setStats(data.stats)
-      }
-    } catch (error) {
-      console.error("Failed to fetch logs:", error)
-    } finally {
+    const loadData = async () => {
+      setLoading(true)
+      await Promise.all([fetchStats(), fetchRecentAttacks()])
       setLoading(false)
     }
-  }
 
-  useEffect(() => {
-    fetchLogs()
+    loadData()
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(loadData, 30000)
+    return () => clearInterval(interval)
   }, [])
 
-  useEffect(() => {
-    let filtered = [...logs]
-
-    // Search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase()
-      filtered = filtered.filter(
-        (log) =>
-          log.username_attempt?.toLowerCase().includes(searchLower) ||
-          log.ip_address?.toLowerCase().includes(searchLower) ||
-          log.sql_query?.toLowerCase().includes(searchLower) ||
-          log.error_message?.toLowerCase().includes(searchLower),
-      )
+  const statCards = [
+    {
+      title: "Total Attacks",
+      value: stats.total,
+      icon: <Target className="w-5 h-5" />,
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+      change: "+12%",
+      changeType: "increase"
+    },
+    {
+      title: "SQL Injections",
+      value: stats.sqlInjections,
+      icon: <Database className="w-5 h-5" />,
+      color: "text-red-500",
+      bgColor: "bg-red-500/10",
+      change: "+8%",
+      changeType: "increase"
+    },
+    {
+      title: "Brute Force",
+      value: stats.bruteForce,
+      icon: <Zap className="w-5 h-5" />,
+      color: "text-orange-500",
+      bgColor: "bg-orange-500/10",
+      change: "+15%",
+      changeType: "increase"
+    },
+    {
+      title: "Successful",
+      value: stats.successful,
+      icon: <AlertTriangle className="w-5 h-5" />,
+      color: "text-red-600",
+      bgColor: "bg-red-600/10",
+      change: "+5%",
+      changeType: "increase"
+    },
+    {
+      title: "Blocked",
+      value: stats.blocked,
+      icon: <Shield className="w-5 h-5" />,
+      color: "text-green-500",
+      bgColor: "bg-green-500/10",
+      change: "+20%",
+      changeType: "increase"
+    },
+    {
+      title: "Today",
+      value: stats.today,
+      icon: <Clock className="w-5 h-5" />,
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10",
+      change: "+3%",
+      changeType: "increase"
     }
+  ]
 
-    // Attack type filter
-    if (filters.attackType !== "all") {
-      filtered = filtered.filter((log) => log.attack_type === filters.attackType)
+  const getAttackTypeColor = (type: string) => {
+    switch (type) {
+      case 'sql_injection': return 'bg-red-500/20 text-red-500 border-red-500/30'
+      case 'brute_force': return 'bg-orange-500/20 text-orange-500 border-orange-500/30'
+      case 'credential_stuffing': return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'
+      default: return 'bg-blue-500/20 text-blue-500 border-blue-500/30'
     }
-
-    // Success filter
-    if (filters.success !== "all") {
-      const successValue = filters.success === "success"
-      filtered = filtered.filter((log) => log.success === (successValue ? 1 : 0))
-    }
-
-    // IP address filter
-    if (filters.ipAddress) {
-      filtered = filtered.filter((log) => log.ip_address?.includes(filters.ipAddress))
-    }
-
-    // Date range filter
-    if (filters.dateFrom) {
-      const fromDate = new Date(filters.dateFrom)
-      filtered = filtered.filter((log) => new Date(log.timestamp) >= fromDate)
-    }
-    if (filters.dateTo) {
-      const toDate = new Date(filters.dateTo)
-      toDate.setHours(23, 59, 59, 999)
-      filtered = filtered.filter((log) => new Date(log.timestamp) <= toDate)
-    }
-
-    setFilteredLogs(filtered)
-  }, [filters, logs])
-
-  const exportLogs = () => {
-    const dataStr = JSON.stringify(filteredLogs, null, 2)
-    const dataBlob = new Blob([dataStr], { type: "application/json" })
-    const url = URL.createObjectURL(dataBlob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `attack-logs-${new Date().toISOString()}.json`
-    link.click()
-    URL.revokeObjectURL(url)
   }
 
-  const clearFilters = () => {
-    setFilters({
-      search: "",
-      attackType: "all",
-      success: "all",
-      dateFrom: "",
-      dateTo: "",
-      ipAddress: "",
-    })
+  const getRiskColor = (score: number) => {
+    if (score >= 80) return 'text-red-500'
+    if (score >= 60) return 'text-orange-500'
+    if (score >= 40) return 'text-yellow-500'
+    return 'text-green-500'
   }
-
-  const hasActiveFilters =
-    filters.search ||
-    filters.attackType !== "all" ||
-    filters.success !== "all" ||
-    filters.dateFrom ||
-    filters.dateTo ||
-    filters.ipAddress
-
-  if (!mounted) return null
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background">
       <ParticleBackground />
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
-      <motion.div
-        className="absolute inset-0 opacity-20"
-        animate={{
-          background: [
-            "radial-gradient(circle at 30% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%)",
-            "radial-gradient(circle at 70% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%)",
-            "radial-gradient(circle at 30% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%)",
-          ],
-        }}
-        transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-      />
-
+      <AnimatedGradientBg />
+      
       {/* Header */}
-      <motion.header
-        className="border-b border-border relative z-10 backdrop-blur-sm bg-background/80"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button variant="ghost" size="sm">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Login
-                  </Button>
-                </motion.div>
-              </Link>
-              <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.05 }}>
-                <Shield className="w-6 h-6 text-primary" />
-                <span className="font-mono text-lg font-semibold">Admin Dashboard</span>
-              </motion.div>
-            </div>
-            <div className="flex items-center gap-2">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  onClick={() => setShowFilters(!showFilters)}
-                  variant={showFilters ? "default" : "outline"}
-                  size="sm"
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filters
-                  {hasActiveFilters && (
-                    <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
-                      Active
-                    </Badge>
-                  )}
-                </Button>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button onClick={exportLogs} variant="outline" size="sm" disabled={filteredLogs.length === 0}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button onClick={fetchLogs} variant="outline" size="sm" disabled={loading}>
-                  <motion.div
-                    animate={loading ? { rotate: 360 } : {}}
-                    transition={{ duration: 1, repeat: loading ? Number.POSITIVE_INFINITY : 0, ease: "linear" }}
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                  </motion.div>
-                  Refresh
-                </Button>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </motion.header>
+      <AnimatedHeader />
 
-      <main className="container mx-auto px-4 py-8 relative z-10">
-        {/* Stats Cards */}
-        {stats && (
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-          >
-            {[
-              { title: "Total Attempts", value: stats.total, icon: Activity, color: "text-foreground" },
-              { title: "SQL Injections", value: stats.sqlInjections, icon: AlertTriangle, color: "text-warning" },
-              { title: "Brute Force", value: stats.bruteForce, icon: AlertTriangle, color: "text-destructive" },
-              { title: "Successful", value: stats.successful, icon: CheckCircle, color: "text-primary" },
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                variants={fadeInUp}
-                whileHover={{ scale: 1.05, y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <Card className="backdrop-blur-sm bg-card/50 hover:shadow-lg transition-shadow duration-300">
-                  <CardHeader className="pb-3">
-                    <CardDescription>{stat.title}</CardDescription>
-                    <CardTitle className={`text-3xl ${stat.color}`}>
-                      <AnimatedCounter value={stat.value} />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mb-6"
-            >
-              <Card className="backdrop-blur-sm bg-card/50">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Filter className="w-5 h-5" />
-                      Advanced Filters
-                    </CardTitle>
-                    {hasActiveFilters && (
-                      <Button onClick={clearFilters} variant="ghost" size="sm">
-                        <X className="w-4 h-4 mr-2" />
-                        Clear All
-                      </Button>
-                    )}
-                  </div>
-                  <CardDescription>
-                    Filter logs by search term, attack type, status, date range, and IP address
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {/* Search */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Search</label>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Username, IP, SQL query..."
-                          value={filters.search}
-                          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                          className="pl-9"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Attack Type */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Attack Type</label>
-                      <Select
-                        value={filters.attackType}
-                        onValueChange={(value) => setFilters({ ...filters, attackType: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Types</SelectItem>
-                          <SelectItem value="sql_injection">SQL Injection</SelectItem>
-                          <SelectItem value="brute_force">Brute Force</SelectItem>
-                          <SelectItem value="normal_login">Normal Login</SelectItem>
-                          <SelectItem value="credential_stuffing">Credential Stuffing</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Success Status */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Status</label>
-                      <Select
-                        value={filters.success}
-                        onValueChange={(value) => setFilters({ ...filters, success: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Status</SelectItem>
-                          <SelectItem value="success">Success Only</SelectItem>
-                          <SelectItem value="failed">Failed Only</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* IP Address */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">IP Address</label>
-                      <Input
-                        placeholder="Filter by IP..."
-                        value={filters.ipAddress}
-                        onChange={(e) => setFilters({ ...filters, ipAddress: e.target.value })}
-                      />
-                    </div>
-
-                    {/* Date From */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Date From</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          type="date"
-                          value={filters.dateFrom}
-                          onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                          className="pl-9"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Date To */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Date To</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          type="date"
-                          value={filters.dateTo}
-                          onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                          className="pl-9"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <p className="text-sm text-muted-foreground">
-                      Showing <span className="font-semibold text-foreground">{filteredLogs.length}</span> of{" "}
-                      <span className="font-semibold text-foreground">{logs.length}</span> total logs
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Logs Table */}
+      <main className="container mx-auto px-4 py-8 space-y-8">
+        {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.6 }}
+          className="flex items-center justify-between"
         >
-          <Card className="backdrop-blur-sm bg-card/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="w-5 h-5" />
-                Attack Logs
-              </CardTitle>
-              <CardDescription>Comprehensive logging of all authentication attempts and attacks</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <motion.div
-                  className="text-center py-8 text-muted-foreground"
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
-                >
-                  Loading logs...
-                </motion.div>
-              ) : filteredLogs.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  {hasActiveFilters ? "No logs match your filters" : "No logs yet"}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <AnimatePresence>
-                    {filteredLogs.map((log: any, index: number) => (
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+              Security Dashboard
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Real-time security monitoring and threat analysis
+            </p>
+          </div>
+          <motion.div
+            className="flex items-center gap-4"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="text-sm text-muted-foreground">
+              Last updated: {lastUpdate.toLocaleTimeString()}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setLoading(true)
+                Promise.all([fetchStats(), fetchRecentAttacks()]).finally(() => setLoading(false))
+              }}
+              disabled={loading}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </motion.div>
+        </motion.div>
+
+        {/* Stats Grid */}
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          {statCards.map((stat, index) => (
+            <motion.div
+              key={stat.title}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
+              whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+            >
+              <GlassCard>
+                <Card className="border-0 bg-transparent">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                        <motion.p
+                          className="text-3xl font-bold mt-2"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
+                        >
+                          {loading ? '...' : stat.value.toLocaleString()}
+                        </motion.p>
+                        <div className="flex items-center gap-1 mt-2">
+                          <TrendingUp className="w-3 h-3 text-green-500" />
+                          <span className="text-xs text-green-500">{stat.change}</span>
+                        </div>
+                      </div>
                       <motion.div
-                        key={log.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        whileHover={{ scale: 1.02 }}
+                        className={`p-3 rounded-lg ${stat.bgColor}`}
+                        animate={{
+                          rotate: [0, 5, -5, 0],
+                          scale: [1, 1.1, 1],
+                        }}
+                        transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY, delay: index * 0.5 }}
                       >
-                        <Card className="bg-secondary/30 hover:bg-secondary/50 transition-colors duration-200">
-                          <CardContent className="pt-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ type: "spring", stiffness: 500, delay: index * 0.05 + 0.1 }}
-                                  >
-                                    <Badge variant={log.success ? "default" : "secondary"}>
-                                      {log.success ? "SUCCESS" : "FAILED"}
-                                    </Badge>
-                                  </motion.div>
-                                  <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ type: "spring", stiffness: 500, delay: index * 0.05 + 0.2 }}
-                                  >
-                                    <Badge
-                                      variant={
-                                        log.attack_type === "sql_injection"
-                                          ? "destructive"
-                                          : log.attack_type === "brute_force"
-                                            ? "destructive"
-                                            : "outline"
-                                      }
-                                    >
-                                      {log.attack_type.toUpperCase().replace("_", " ")}
-                                    </Badge>
-                                  </motion.div>
+                        <div className={stat.color}>
+                          {stat.icon}
+                        </div>
+                      </motion.div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Main Content Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          <Tabs defaultValue="attacks" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="attacks">Recent Attacks</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="attacks" className="space-y-6">
+              <GlassCard>
+                <Card className="border-0 bg-transparent">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="w-5 h-5" />
+                      Recent Security Events
+                    </CardTitle>
+                    <CardDescription>
+                      Live feed of security events and attack attempts
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {loading ? (
+                        <div className="flex items-center justify-center py-8">
+                          <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+                          <span className="ml-2">Loading attacks...</span>
+                        </div>
+                      ) : recentAttacks.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Shield className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                          <p>No attacks detected yet</p>
+                        </div>
+                      ) : (
+                        recentAttacks.map((attack, index) => (
+                          <motion.div
+                            key={attack.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.4, delay: index * 0.1 }}
+                            className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:bg-primary/5 transition-colors"
+                          >
+                            <div className="flex items-center gap-4">
+                              <motion.div
+                                className="p-2 rounded-lg bg-primary/10"
+                                animate={{
+                                  scale: [1, 1.1, 1],
+                                }}
+                                transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: index * 0.2 }}
+                              >
+                                {attack.success ? (
+                                  <AlertTriangle className="w-4 h-4 text-red-500" />
+                                ) : (
+                                  <Shield className="w-4 h-4 text-green-500" />
+                                )}
+                              </motion.div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <Badge className={getAttackTypeColor(attack.attackType)}>
+                                    {attack.attackType.replace('_', ' ').toUpperCase()}
+                                  </Badge>
+                                  <span className={`text-sm font-medium ${getRiskColor(attack.riskScore)}`}>
+                                    Risk: {attack.riskScore}%
+                                  </span>
                                 </div>
-                                <div className="text-sm space-y-1">
-                                  <p>
-                                    <span className="text-muted-foreground">Time:</span>{" "}
-                                    {new Date(log.timestamp).toLocaleString()}
-                                  </p>
-                                  <p>
-                                    <span className="text-muted-foreground">IP:</span> {log.ip_address}
-                                  </p>
-                                  <p>
-                                    <span className="text-muted-foreground">Username:</span>{" "}
-                                    <span className="font-mono">{log.username_attempt}</span>
-                                  </p>
-                                  <p>
-                                    <span className="text-muted-foreground">Password:</span>{" "}
-                                    <span className="font-mono">{log.password_attempt}</span>
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="space-y-2">
-                                {log.sql_query && (
-                                  <div>
-                                    <p className="text-sm text-muted-foreground mb-1">SQL Query:</p>
-                                    <pre className="text-xs bg-background p-2 rounded overflow-x-auto font-mono">
-                                      {log.sql_query}
-                                    </pre>
-                                  </div>
-                                )}
-                                {log.error_message && (
-                                  <div>
-                                    <p className="text-sm text-muted-foreground mb-1">Error:</p>
-                                    <p className="text-xs text-destructive font-mono">{log.error_message}</p>
-                                  </div>
-                                )}
-                                {log.user_agent && (
-                                  <p className="text-xs text-muted-foreground">
-                                    <span>User Agent:</span> {log.user_agent}
-                                  </p>
-                                )}
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {attack.ip} • {attack.username} • {attack.timestamp}
+                                </p>
                               </div>
                             </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                            <div className="text-right">
+                              <p className="text-xs text-muted-foreground">User Agent</p>
+                              <p className="text-sm font-mono truncate max-w-xs">{attack.userAgent}</p>
+                            </div>
+                          </motion.div>
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </GlassCard>
+            </TabsContent>
+
+            <TabsContent value="analytics" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <GlassCard>
+                  <Card className="border-0 bg-transparent">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5" />
+                        Attack Trends
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-8 text-muted-foreground">
+                        <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>Analytics charts coming soon...</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </GlassCard>
+
+                <GlassCard>
+                  <Card className="border-0 bg-transparent">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <PieChart className="w-5 h-5" />
+                        Attack Distribution
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-8 text-muted-foreground">
+                        <PieChart className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>Distribution charts coming soon...</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </GlassCard>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-6">
+              <GlassCard>
+                <Card className="border-0 bg-transparent">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Lock className="w-5 h-5" />
+                      Security Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure security policies and monitoring settings
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Lock className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Security settings panel coming soon...</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </GlassCard>
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </main>
     </div>

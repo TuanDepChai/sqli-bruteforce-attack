@@ -323,21 +323,56 @@ bruteForce('admin', allPasswords);`,
           className="mb-8"
         >
           <motion.h1
-            className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent animate-gradient-shift"
+            className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent"
             animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
             transition={{ duration: 5, repeat: Number.POSITIVE_INFINITY }}
           >
             Professional Security Training Guide
           </motion.h1>
           <motion.p
-            className="text-muted-foreground text-lg leading-relaxed"
+            className="text-muted-foreground text-xl leading-relaxed mb-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Learn advanced penetration testing techniques and security vulnerabilities in this comprehensive training
-            environment.
+            Master advanced penetration testing techniques and security vulnerabilities in this comprehensive, hands-on training environment.
           </motion.p>
+          
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            {[
+              { icon: <Code className="w-6 h-6" />, title: "SQL Injection", desc: "6 attack techniques", color: "text-red-500", bg: "bg-red-500/10" },
+              { icon: <Zap className="w-6 h-6" />, title: "Brute Force", desc: "4 attack methods", color: "text-orange-500", bg: "bg-orange-500/10" },
+              { icon: <Shield className="w-6 h-6" />, title: "Prevention", desc: "Security best practices", color: "text-green-500", bg: "bg-green-500/10" }
+            ].map((item, index) => (
+              <motion.div
+                key={item.title}
+                className={`p-4 rounded-lg border border-border/50 ${item.bg} hover:shadow-lg transition-all duration-300`}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 + index * 0.1 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+              >
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    className={`p-2 rounded-lg ${item.color}`}
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY, delay: index * 0.5 }}
+                  >
+                    {item.icon}
+                  </motion.div>
+                  <div>
+                    <h3 className="font-semibold">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </motion.div>
 
         <Tabs defaultValue="sql-injection" className="space-y-6">
