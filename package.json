@@ -101,20 +101,9 @@
     "clean": "rm -rf .next logs/*.log",
     "reset": "npm run clean && npm run dev",
     "logs": "tail -f logs/attacks.log",
-    "generate-logs": "./scripts/generate-logs.sh",
-    "config-wazuh": "./scripts/config-wazuh-agent.sh",
     "stats": "echo 'Total logs:' && wc -l logs/attacks.log 2>/dev/null || echo 'No logs yet'",
-    "install-deps": "npm install",
     "setup-db": "node scripts/setup-mongodb.js",
-    "setup-db-windows": "node setup-mongodb-windows.js",
-    "test-mongodb": "node test-mongodb-connection.js",
-    "auto-setup-ubuntu": "bash auto-setup-ubuntu.sh",
-    "one-click-start": "bash one-click-start.sh",
-    "generate-keys": "node generate-env-keys.js",
-    "seed-db": "node scripts/seed-database.js",
-    "security-audit": "npm audit && npm run lint",
     "lint": "next lint",
-    "type-check": "tsc --noEmit",
-    "test-logger": "node test-simple-logger.js"
+    "type-check": "tsc --noEmit"
   }
 }
