@@ -75,117 +75,343 @@ class CyberSecurityAnomalyDetector:
         
     def extract_features(self, log_data: Dict) -> np.ndarray:
         """
-        🔍 Feature Engineering cho Security Logs
+        🔍 Advanced Feature Engineering cho Unsupervised Learning
         
-        Features được thiết kế để capture:
-        1. SQL Injection patterns
-        2. Brute Force behaviors  
-        3. Normal vs Anomalous traffic patterns
+        Học từ traffic sạch dựa trên đặc trưng chuyên sâu của SQLi và Brute Force:
+        - Không sử dụng event_type để học (pure unsupervised)
+        - Dựa trên behavioral patterns và statistical anomalies
+        - Capture sophisticated attack vectors
         """
         features = []
         
-        # 1. 📊 Basic Request Features
+        # 1. 📊 Request Behavioral Features
         features.extend([
-            self._extract_request_frequency(log_data),
-            self._extract_payload_size_score(log_data),
-            self._extract_response_time_score(log_data),
-            self._extract_status_code_score(log_data)
+            self._extract_request_behavior_score(log_data),
+            self._extract_payload_complexity_score(log_data),
+            self._extract_response_anomaly_score(log_data),
+            self._extract_http_anomaly_score(log_data)
         ])
         
-        # 2. 🔐 Authentication Features
+        # 2. 🚨 Advanced SQL Injection Features
         features.extend([
-            self._extract_auth_pattern_score(log_data),
-            self._extract_credential_entropy(log_data),
-            self._extract_login_success_rate(log_data),
-            self._extract_session_pattern_score(log_data)
+            self._extract_advanced_sqli_score(log_data),
+            self._extract_query_manipulation_score(log_data),
+            self._extract_sql_encoding_score(log_data),
+            self._extract_sql_bypass_score(log_data),
+            self._extract_nosql_injection_score(log_data)
         ])
         
-        # 3. 🚨 SQL Injection Features
+        # 3. 💥 Advanced Brute Force Features
         features.extend([
-            self._extract_sql_injection_score(log_data),
-            self._extract_query_complexity_score(log_data),
-            self._extract_sql_pattern_diversity(log_data),
-            self._extract_parameter_manipulation_score(log_data)
+            self._extract_advanced_bruteforce_score(log_data),
+            self._extract_credential_stuffing_score(log_data),
+            self._extract_password_spraying_score(log_data),
+            self._extract_automation_detection_score(log_data),
+            self._extract_distributed_attack_score(log_data)
         ])
         
-        # 4. 💥 Brute Force Features
+        # 4. 🧠 Behavioral Analysis Features
         features.extend([
-            self._extract_brute_force_score(log_data),
-            self._extract_attack_velocity(log_data),
-            self._extract_password_dictionary_score(log_data),
-            self._extract_user_enumeration_score(log_data)
+            self._extract_behavioral_anomaly_score(log_data),
+            self._extract_temporal_anomaly_score(log_data),
+            self._extract_sequence_anomaly_score(log_data),
+            self._extract_statistical_deviation_score(log_data)
         ])
         
-        # 5. 🌐 Network & Behavioral Features
+        # 5. 🌐 Network & Infrastructure Features
         features.extend([
-            self._extract_ip_reputation_score(log_data),
-            self._extract_user_agent_score(log_data),
-            self._extract_referer_pattern_score(log_data),
-            self._extract_temporal_pattern_score(log_data)
+            self._extract_network_anomaly_score(log_data),
+            self._extract_infrastructure_anomaly_score(log_data),
+            self._extract_protocol_anomaly_score(log_data),
+            self._extract_geographic_anomaly_score(log_data)
         ])
         
-        # 6. 📈 Statistical Features
+        # 6. 🔬 Deep Pattern Analysis Features
         features.extend([
-            self._extract_statistical_anomaly_score(log_data),
+            self._extract_pattern_complexity_score(log_data),
+            self._extract_pattern_entropy_score(log_data),
             self._extract_pattern_deviation_score(log_data),
-            self._extract_entropy_score(log_data),
-            self._extract_frequency_deviation_score(log_data)
+            self._extract_pattern_correlation_score(log_data)
         ])
         
         return np.array(features, dtype=np.float32)
     
-    def _extract_request_frequency(self, data: Dict) -> float:
-        """Tần suất request trong time window"""
-        # Simulate frequency based on timestamp patterns
+    def _extract_request_behavior_score(self, data: Dict) -> float:
+        """
+        Phân tích hành vi request dựa trên behavioral patterns
+        
+        Dựa trên: Request patterns, timing, sequence, và behavioral anomalies
+        """
+        # Analyze request timing patterns
         timestamp = data.get('timestamp', '')
+        method = data.get('method', 'POST')
+        url = data.get('url', '')
+        
+        behavior_score = 0.0
+        
+        # 1. Timing anomaly detection
         if timestamp:
             try:
                 dt = datetime.fromisoformat(timestamp.replace('+0700', '+07:00'))
-                # Higher frequency during business hours = normal
                 hour = dt.hour
-                if 8 <= hour <= 18:
-                    return 0.3  # Normal business hours
-                else:
-                    return 0.8  # After hours = potentially suspicious
+                minute = dt.minute
+                second = dt.second
+                
+                # Suspicious timing patterns
+                if hour < 6 or hour > 22:  # Late night/early morning
+                    behavior_score += 0.3
+                
+                # Automated timing (exact intervals)
+                if second == 0 or second % 10 == 0:  # Round intervals
+                    behavior_score += 0.2
+                
+                # Burst patterns (rapid succession)
+                if minute % 5 == 0:  # Every 5 minutes
+                    behavior_score += 0.2
+                    
             except:
                 pass
-        return 0.5  # Default moderate frequency
-    
-    def _extract_payload_size_score(self, data: Dict) -> float:
-        """Đánh giá kích thước payload"""
-        url = data.get('url', '')
+        
+        # 2. Request method anomaly
+        if method not in ['GET', 'POST']:
+            behavior_score += 0.4
+        
+        # 3. URL pattern analysis
         if url:
-            # Larger payloads often indicate injection attempts
-            size = len(url)
-            if size > 200:
-                return 0.8  # Suspicious large payload
-            elif size > 100:
-                return 0.4  # Moderate size
-            else:
-                return 0.1  # Normal size
-        return 0.2
+            # Suspicious URL patterns
+            if 'admin' in url.lower() or 'login' in url.lower():
+                behavior_score += 0.1
+            
+            # Parameter manipulation indicators
+            if '?' in url and ('=' in url or '&' in url):
+                param_count = url.count('=')
+                if param_count > 5:  # Too many parameters
+                    behavior_score += 0.3
+        
+        return min(behavior_score, 1.0)
     
-    def _extract_response_time_score(self, data: Dict) -> float:
-        """Thời gian phản hồi - SQLi thường có response time khác biệt"""
-        # Simulate response time analysis
+    def _extract_payload_complexity_score(self, data: Dict) -> float:
+        """
+        Phân tích độ phức tạp payload dựa trên SQLi và Brute Force patterns
+        
+        Dựa trên: Payload size, complexity, encoding, và manipulation patterns
+        """
+        url = data.get('url', '')
+        username = data.get('username', '')
+        password = data.get('password', '')
         query = data.get('query', '')
-        if query and ('OR' in query.upper() or 'UNION' in query.upper()):
-            return 0.7  # Complex queries take longer
-        return 0.2  # Normal response time
+        
+        complexity_score = 0.0
+        
+        # 1. URL Payload Complexity
+        if url:
+            # Size analysis
+            size = len(url)
+            if size > 500:
+                complexity_score += 0.4  # Very large payload
+            elif size > 200:
+                complexity_score += 0.2  # Large payload
+            
+            # Parameter complexity
+            if '?' in url:
+                params = url.split('?')[1] if '?' in url else ''
+                
+                # Multiple parameters
+                param_count = params.count('&') + 1
+                if param_count > 10:
+                    complexity_score += 0.3
+                
+                # URL encoding complexity
+                encoded_chars = params.count('%')
+                if encoded_chars > 20:
+                    complexity_score += 0.3
+                
+                # Special characters (SQLi indicators)
+                special_chars = sum(1 for c in params if c in "'\"();--/*")
+                if special_chars > 5:
+                    complexity_score += 0.4
+        
+        # 2. Credential Complexity Analysis
+        if username or password:
+            # Username complexity
+            if username:
+                if len(username) > 100:
+                    complexity_score += 0.3  # Suspiciously long username
+                
+                # SQLi patterns in username
+                sqli_chars = sum(1 for c in username if c in "'\"();--/*")
+                if sqli_chars > 0:
+                    complexity_score += 0.5
+            
+            # Password complexity
+            if password:
+                if len(password) > 200:
+                    complexity_score += 0.3  # Suspiciously long password
+                
+                # Dictionary password detection
+                weak_passwords = ['password', '123456', 'admin', 'root', 'test', 'guest']
+                if password.lower() in weak_passwords:
+                    complexity_score += 0.2  # Common weak password
+        
+        # 3. SQL Query Complexity
+        if query:
+            # Query length
+            if len(query) > 300:
+                complexity_score += 0.3
+            
+            # SQL keyword complexity
+            sql_keywords = ['SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'UNION', 'JOIN', 'INSERT', 'UPDATE', 'DELETE']
+            keyword_count = sum(1 for keyword in sql_keywords if keyword in query.upper())
+            if keyword_count > 5:
+                complexity_score += 0.4
+            
+            # Complex SQL patterns
+            if 'UNION' in query.upper() or 'OR 1=1' in query.upper():
+                complexity_score += 0.6
+        
+        return min(complexity_score, 1.0)
     
-    def _extract_status_code_score(self, data: Dict) -> float:
-        """Phân tích status code patterns"""
+    def _extract_response_anomaly_score(self, data: Dict) -> float:
+        """
+        Phân tích response anomalies dựa trên SQLi và Brute Force patterns
+        
+        Dựa trên: Response time, status codes, error patterns, và server behavior
+        """
         status_code = data.get('status_code', '200')
         success = data.get('success', False)
+        query = data.get('query', '')
+        url = data.get('url', '')
         
-        if str(status_code) == '500':
-            return 0.9  # Server error = potential SQLi
-        elif str(status_code) == '401' and not success:
-            return 0.6  # Auth failure = potential brute force
-        elif str(status_code) == '200' and success:
-            return 0.1  # Normal successful request
+        anomaly_score = 0.0
+        
+        # 1. Status Code Anomaly Analysis
+        try:
+            status_int = int(str(status_code))
+            
+            # SQLi indicators
+            if status_int == 500:
+                anomaly_score += 0.8  # Server error = potential SQLi
+            elif status_int == 400:
+                anomaly_score += 0.4  # Bad request = parameter manipulation
+            elif status_int == 403:
+                anomaly_score += 0.3  # Forbidden = access attempt
+            
+            # Brute Force indicators
+            elif status_int == 401:
+                anomaly_score += 0.5  # Unauthorized = auth failure
+            elif status_int == 429:
+                anomaly_score += 0.7  # Too many requests = rate limiting
+                
+        except:
+            pass
+        
+        # 2. Success/Failure Pattern Analysis
+        if isinstance(success, str):
+            success = success.lower() in ['true', 'yes', '1']
+        
+        if not success:
+            # Failed authentication patterns
+            if 'login' in url.lower() or 'auth' in url.lower():
+                anomaly_score += 0.3  # Failed login attempt
+            
+            # SQL error patterns
+            if status_code == '500' and query:
+                anomaly_score += 0.6  # SQL error with query
+        
+        # 3. Query Response Analysis
+        if query:
+            # Complex query response time simulation
+            if 'UNION' in query.upper():
+                anomaly_score += 0.4  # Union queries are complex
+            elif 'OR 1=1' in query.upper():
+                anomaly_score += 0.5  # Boolean-based injection
+            elif 'SLEEP' in query.upper() or 'WAITFOR' in query.upper():
+                anomaly_score += 0.7  # Time-based injection
+        
+        # 4. Response Pattern Anomalies
+        # Simulate response time analysis based on request complexity
+        if url:
+            param_count = url.count('&') + url.count('=')
+            if param_count > 10:
+                anomaly_score += 0.2  # Complex request = longer response
+        
+        return min(anomaly_score, 1.0)
+    
+    def _extract_http_anomaly_score(self, data: Dict) -> float:
+        """
+        Phân tích HTTP anomalies dựa trên protocol patterns
+        
+        Dựa trên: HTTP method, headers, protocol compliance, và request structure
+        """
+        method = data.get('method', '')
+        status_code = data.get('status_code', '200')
+        url = data.get('url', '')
+        user_agent = data.get('user_agent', '')
+        
+        anomaly_score = 0.0
+        
+        # 1. HTTP Method Analysis
+        valid_methods = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS']
+        if method.upper() not in valid_methods:
+            anomaly_score += 0.8  # Invalid HTTP method
+        
+        # 2. Method-URL Mismatch Detection
+        if method.upper() == 'GET' and '?' in url and len(url) > 2000:
+            anomaly_score += 0.6  # GET with very long query string
+        
+        if method.upper() == 'POST' and 'login' in url.lower() and len(url) < 50:
+            anomaly_score += 0.3  # POST to login with short URL (suspicious)
+        
+        # 3. Status Code Anomalies
+        try:
+            status_int = int(str(status_code))
+            
+            # Unusual status codes for login endpoints
+            if 'login' in url.lower():
+                if status_int not in [200, 401, 403, 422]:
+                    anomaly_score += 0.5  # Unexpected status for login
+            
+            # Server errors
+            if 500 <= status_int < 600:
+                anomaly_score += 0.7  # Server error
+            
+            # Client errors
+            if 400 <= status_int < 500:
+                anomaly_score += 0.4  # Client error
+                
+        except:
+            anomaly_score += 0.3  # Invalid status code
+        
+        # 4. User Agent Analysis
+        if user_agent:
+            # Missing or suspicious user agents
+            if len(user_agent) < 10:
+                anomaly_score += 0.4
+            
+            # Automated tool indicators
+            automation_patterns = ['python', 'curl', 'wget', 'bot', 'scanner', 'bruteforce']
+            if any(pattern in user_agent.lower() for pattern in automation_patterns):
+                anomaly_score += 0.6
+            
+            # Suspicious user agent patterns
+            if 'Mozilla' not in user_agent and 'Chrome' not in user_agent and 'Safari' not in user_agent:
+                anomaly_score += 0.3  # Non-browser user agent
         else:
-            return 0.3  # Other codes
+            anomaly_score += 0.5  # Missing user agent
+        
+        # 5. URL Structure Anomalies
+        if url:
+            # Unusual URL patterns
+            if url.count('/') > 10:  # Too many path segments
+                anomaly_score += 0.3
+            
+            if url.count('?') > 1:  # Multiple query string markers
+                anomaly_score += 0.4
+            
+            if len(url) > 1000:  # Extremely long URL
+                anomaly_score += 0.5
+        
+        return min(anomaly_score, 1.0)
     
     def _extract_auth_pattern_score(self, data: Dict) -> float:
         """Phân tích patterns trong authentication"""
