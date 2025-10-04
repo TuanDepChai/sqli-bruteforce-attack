@@ -77,11 +77,15 @@ export async function POST(request: NextRequest) {
   const vulnerableQuery = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`
 
   try {
-    // Execute the vulnerable query using MongoDB
-    const user = await User.findOne({ 
-      username: username,
-      password: password // Intentionally vulnerable - should use bcrypt in production
-    })
+    // Find user by username first
+    const user = await User.findOne({ username: username })
+    
+    // Check password (demo mode: plain text, production: bcrypt)
+    const isValidPassword = user ? (
+      process.env.NODE_ENV === 'production' 
+        ? await user.comparePassword(password)
+        : user.password === password // Demo mode - intentionally vulnerable
+    ) : false
 
     const responseTime = Date.now() - startTime
     const payloadSize = JSON.stringify({ username, password }).length
@@ -100,7 +104,7 @@ export async function POST(request: NextRequest) {
       password_attempt: password,
       attack_type: attackType,
       sql_query: vulnerableQuery,
-      success: !!user,
+      success: isValidPassword,
       user_agent: userAgent,
       request_method: "POST",
       request_headers: requestHeaders,
@@ -135,7 +139,7 @@ export async function POST(request: NextRequest) {
       }),
     })
 
-    if (user) {
+    if (user && isValidPassword) {
       return NextResponse.json({
         success: true,
         message: "Login successful",
@@ -147,6 +151,7 @@ export async function POST(request: NextRequest) {
         },
         vulnerability: containsSqlInjection ? "SQL Injection detected and exploited!" : 
                        hasBruteForcePatterns ? "Brute force attack pattern detected!" : null,
+        mode: process.env.NODE_ENV === 'production' ? 'secure' : 'demo',
       })
     } else {
       // Log failed login attempt
