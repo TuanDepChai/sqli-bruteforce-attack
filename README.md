@@ -10,64 +10,28 @@ Professional security training application featuring:
 - **Attack detection** - Real-time monitoring and analysis
 - **Comprehensive logging** - All attacks logged for AI/ML analysis
 
-## 🚀 Quick Start (Local Development)
+## 🚀 Quick Start (Ubuntu/Linux Only)
 
-### Windows (Recommended)
+
+### One Command Setup
 ```bash
-# Clone and run
-git clone https://github.com/TuanDepChai/sqli-bruteforce-attack.git
-cd sqli-bruteforce-attack
-run-local.bat
+# Download and setup everything automatically
+curl -fsSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/setup.sh | bash
 ```
 
-### Ubuntu/Linux
-```bash
-# One command setup
-curl -fsSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/setup.sh | bash
-
-# Manual setup
+### Manual Setup
 ```bash
 # 1. Clone repository
 git clone https://github.com/TuanDepChai/sqli-bruteforce-attack.git
 cd sqli-bruteforce-attack
 
-# 2. Run setup script
-chmod +x setup.sh
+# 2. Run setup script (installs everything)
 ./setup.sh
 
 # 3. Start application
-npm run dev
+./start-app.sh
 ```
 
-#### Server Deployment
-```bash
-# For production server deployment
-chmod +x ubuntu-server-setup.sh
-./ubuntu-server-setup.sh
-```
-
-### Windows Setup
-
-#### Prerequisites
-- **Node.js**: 18.x or higher
-- **npm**: Latest version
-- **MongoDB**: 7.0 or higher
-
-#### Installation
-```bash
-# 1. Clone repository
-git clone https://github.com/TuanDepChai/sqli-bruteforce-attack.git
-cd sqli-bruteforce-attack
-
-# 2. Install dependencies
-npm install
-
-# 3. Setup MongoDB database
-npm run setup-db
-
-# 4. Start application
-npm run dev
-```
 
 ### Access Application
 - **Web Interface**: http://localhost:3000
@@ -78,7 +42,7 @@ npm run dev
 
 | Username | Password | Role |
 |----------|----------|------|
-| `admin` | `admin123` | System Administrator |
+| `admin` | `Admin123!@#` | System Administrator |
 | `user` | `password` | Sales Representative |
 | `john` | `john2024` | Software Engineer |
 | `sarah` | `sarah!pass` | Marketing Manager |
