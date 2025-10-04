@@ -239,6 +239,14 @@ start_services() {
     # Build the application
     npm run build
     
+    # Create a simple start script
+    cat > start.sh << 'EOF'
+#!/bin/bash
+cd "$(dirname "$0")"
+npm run dev
+EOF
+    chmod +x start.sh
+    
     print_success "Services started successfully"
 }
 
@@ -249,6 +257,7 @@ show_final_instructions() {
     echo ""
     echo -e "${BLUE}📋 Next Steps:${NC}"
     echo "1. Start the application:"
+    echo "   ${YELLOW}./start.sh${NC} (recommended)"
     echo "   ${YELLOW}npm run dev${NC} (for development)"
     echo "   ${YELLOW}npm start${NC} (for production)"
     echo ""

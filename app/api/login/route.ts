@@ -4,6 +4,8 @@ import { logAttack } from "@/lib/simple-logger"
 import User from "@/lib/models/User"
 import bcrypt from "bcryptjs"
 
+export const dynamic = 'force-dynamic'
+
 // INTENTIONALLY VULNERABLE - FOR EDUCATIONAL PURPOSES ONLY
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
