@@ -10,17 +10,22 @@ Professional security training application featuring:
 - **Attack detection** - Real-time monitoring and analysis
 - **Comprehensive logging** - All attacks logged for AI/ML analysis
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Local Development)
 
-### Ubuntu/Linux Setup (Recommended)
-
-#### One-Command Setup
+### Windows (Recommended)
 ```bash
-# Download and run setup script
-curl -fsSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/setup.sh | bash
+# Clone and run
+git clone https://github.com/TuanDepChai/sqli-bruteforce-attack.git
+cd sqli-bruteforce-attack
+run-local.bat
 ```
 
-#### Manual Setup
+### Ubuntu/Linux
+```bash
+# One command setup
+curl -fsSL https://raw.githubusercontent.com/TuanDepChai/sqli-bruteforce-attack/main/setup.sh | bash
+
+# Manual setup
 ```bash
 # 1. Clone repository
 git clone https://github.com/TuanDepChai/sqli-bruteforce-attack.git

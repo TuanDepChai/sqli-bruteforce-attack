@@ -103,7 +103,6 @@
     "logs": "tail -f logs/attacks.log",
     "stats": "echo 'Total logs:' && wc -l logs/attacks.log 2>/dev/null || echo 'No logs yet'",
     "setup-db": "node scripts/setup-mongodb.js",
-    "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "local": "npm run dev"
   }
 }

@@ -252,7 +252,7 @@ export default function AdminDashboard() {
                           animate={{ scale: 1 }}
                           transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
                         >
-                          {loading ? '...' : stat.value.toLocaleString()}
+                          {loading ? '...' : (stat.value || 0).toLocaleString()}
                         </motion.p>
                         <div className="flex items-center gap-1 mt-2">
                           <TrendingUp className="w-3 h-3 text-green-500" />
