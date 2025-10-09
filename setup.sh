@@ -125,6 +125,8 @@ Type=simple
 User=$USER
 WorkingDirectory=$(pwd)
 Environment=NODE_ENV=production
+Environment=HOST=0.0.0.0
+Environment=PORT=3000
 ExecStart=/usr/bin/npm start
 Restart=always
 RestartSec=10
@@ -142,12 +144,31 @@ print_status "Creating startup script..."
 cat > start-app.sh << 'EOF'
 #!/bin/bash
 cd "$(dirname "$0")"
+
+# Get LAN IP address
+LAN_IP=$(hostname -I | awk '{print $1}')
+if [ -z "$LAN_IP" ]; then
+    LAN_IP=$(ip route get 1 | awk '{print $7; exit}')
+fi
+
 echo "🚀 Starting SQLi BruteForce Attack Training Platform..."
-echo "📱 Access at: http://localhost:3000"
-echo "🔐 Admin: http://localhost:3000/admin"
+echo ""
+echo "📱 Access URLs:"
+echo "   Local:  http://localhost:3000"
+echo "   LAN:    http://$LAN_IP:3000"
+echo ""
+echo "🔐 Admin Dashboard:"
+echo "   Local:  http://localhost:3000/admin"
+echo "   LAN:    http://$LAN_IP:3000/admin"
+echo ""
 echo "📊 Login: admin / Admin123!@#"
 echo ""
-npm run dev
+echo "💡 To access from other devices in LAN:"
+echo "   Use the LAN URL: http://$LAN_IP:3000"
+echo ""
+
+# Start with host binding for LAN access
+HOST=0.0.0.0 npm run dev
 EOF
 
 chmod +x start-app.sh
@@ -160,6 +181,12 @@ else
     print_warning "MongoDB connection test failed. Please check MongoDB status."
 fi
 
+# Get LAN IP for final instructions
+LAN_IP=$(hostname -I | awk '{print $1}')
+if [ -z "$LAN_IP" ]; then
+    LAN_IP=$(ip route get 1 | awk '{print $7; exit}')
+fi
+
 # Final instructions
 echo ""
 echo -e "${GREEN}🎉 Setup completed successfully!${NC}"
@@ -170,8 +197,9 @@ echo "   ${YELLOW}./start-app.sh${NC} (development mode)"
 echo "   ${YELLOW}sudo systemctl start sqli-bruteforce${NC} (production service)"
 echo ""
 echo "2. Access the application:"
-echo "   ${YELLOW}http://localhost:3000${NC}"
-echo "   ${YELLOW}http://localhost:3000/admin${NC}"
+echo "   ${YELLOW}Local:  http://localhost:3000${NC}"
+echo "   ${YELLOW}LAN:    http://$LAN_IP:3000${NC}"
+echo "   ${YELLOW}Admin:  http://$LAN_IP:3000/admin${NC}"
 echo ""
 echo "3. Default credentials:"
 echo "   ${YELLOW}Username: admin${NC}"
@@ -191,4 +219,7 @@ echo -e "${GREEN}✅ Ready to use!${NC}"
 echo ""
 echo -e "${BLUE}💡 Quick Start:${NC}"
 echo "   ${YELLOW}./start-app.sh${NC}"
+echo ""
+echo -e "${PURPLE}🌐 LAN Access:${NC}"
+echo "   ${YELLOW}Other devices can access: http://$LAN_IP:3000${NC}"
 echo ""

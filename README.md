@@ -34,9 +34,23 @@ cd sqli-bruteforce-attack
 
 
 ### Access Application
+
+#### Local Access
 - **Web Interface**: http://localhost:3000
 - **Admin Dashboard**: http://localhost:3000/admin
 - **Help Documentation**: http://localhost:3000/help
+
+#### LAN Access (Other Devices)
+After starting the application, you can access from other devices in your network:
+- **Web Interface**: http://[YOUR_IP]:3000
+- **Admin Dashboard**: http://[YOUR_IP]:3000/admin
+
+**To find your IP address:**
+```bash
+hostname -I
+# or
+ip route get 1 | awk '{print $7; exit}'
+```
 
 ## 🎯 Default Credentials
 
